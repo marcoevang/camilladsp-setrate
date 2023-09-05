@@ -11,7 +11,7 @@ This part of the project is inspired by `pavhofman`'s [gaudio_ctl](https://githu
 
 2. **_camilladsp-setrate_ forces reload of a valid configuration whenever a USB DAC becomes available.**
 
-This is useful, for example, when switching the input of your DAC from S/P-DIF to USB (whithout `camilladsp-setrate`, CamillaDSP would hang with an invalid configuration).   
+This is useful, for example, when switching the input of your DAC from S/P-DIF to USB (whithout `camilladsp-setrate`, CamillaDSP would hang with an invalid configuration). This is done by performing the same process described above for sample rate change when a signal is sent to the _camilladsp-setrate_ process by means of an `udev rule`.  
 # Context
 **_camilladsp-setrate_** is meant for use on a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry PI 3A, Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.
 This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux distributions as well.
