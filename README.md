@@ -22,7 +22,7 @@ The software is coded in C language with use of the asound and libwebsockets C l
 1. Install the development environment and the required libraries
 ```
 sudo apt update  
-sudo apt install build-essential libasound2-dev libwebsockets
+sudo apt install build-essential libasound2-dev libwebsockets-dev
 ```
 2. Build the executable file
 ```
