@@ -11,7 +11,7 @@ This part of the project is inspired by `pavhofman`'s [gaudio_ctl](https://githu
 
 2. **_camilladsp-setrate_ forces reload of a valid configuration whenever a USB DAC becomes available.**
 
-This is useful, for example, when switching the input of your DAC from USB to S/P-DIF and then to USB again (whithout `camilladsp-setrate`, CamillaDSP would hang up due to an invalid configuration). This is done by performing the same process described above for sample rate change when a signal is sent to the _camilladsp-setrate_ process by means of an `udev rule`.  
+This is useful, for example, when switching the input of your DAC from USB to S/P-DIF; whithout `camilladsp-setrate`, when switching back to USB CamillaDSP would hang up due to an invalid configuration). This is done by performing the same process described above for sample rate change when a signal is sent to the _camilladsp-setrate_ process by means of an `udev rule`.  
 
 This feature may be enabled with a command line option (see _Running_ section).
 
