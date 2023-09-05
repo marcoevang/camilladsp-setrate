@@ -6,5 +6,5 @@ It is meant for use on a USB gadget capture device. I have tested it on my Raspb
 This project is fully developed in C language. 
 To build the executable file you need to previously install some packages:
 sudo apt update
-sudo apt install build-essential libasound2-dev libwebsockets
+sudo apt install build-essential libasound2-dev libweb  sockets
 
