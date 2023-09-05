@@ -51,7 +51,7 @@ OPTIONS:
 - `--err`       enables output of error log messages
 - `--warn`      enables output of warning log messages
 - `--user`      enables output of log messages concerning key events
-- `--notice`    enables output of log messages useful to track what's happening inside the camilladsp-setrate process
+- `--notice`    enables output of log messages useful to track what's happening inside the _camilladsp-setrate_ process
 - `--timestamp` causes a timestamp to be prepended to each log message
 - `--syslog`    redirects log messages to _syslog_ (otherwise messages are sent to standard error)
 - `--usbmon`    enables catching of signals that notify availabilty of the USB DAC
