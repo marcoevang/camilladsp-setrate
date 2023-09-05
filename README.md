@@ -38,7 +38,7 @@ The software is coded in C language with use of the asound and libwebsockets C l
 > sudo cp camilladsp-setrate.service /etc/systemd/system
 > 
 > sudo systemctl enable camilladsp-setrate
-> 5. Reboot the system
+5. Reboot the system
 > sudo reboot
 # Running
 **_camilladsp-setrate_** starts as a service at boot. The executable file provides a few options to log events and to enable the usb monitoring:
