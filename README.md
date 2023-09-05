@@ -11,7 +11,7 @@ This is obtained by subscribing to Alsa events, reading the current sample rate 
 
 This is useful, for example, when switching the input of your DAC from USB to S/P-DIF; whithout `camilladsp-setrate`, when switching back to USB, CamillaDSP would hang up due to an invalid configuration. This result is obtained by performing the same process described above for sample rate. but this time when a signal is sent to the _camilladsp-setrate_ process by means of an `udev rule`.  
 This feature may be enabled with a command line option (see _Running_ section).  
-This part of the project is inspired by `pohofman`'s [gaudio_ctl](https://github.com/pavhofman/gaudio_ctl).
+This part of the project is inspired by `pavhofman`'s [gaudio_ctl](https://github.com/pavhofman/gaudio_ctl).
 
 ## Context
 **_camilladsp-setrate_** is meant for use on a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry PI 3A, Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.
