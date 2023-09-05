@@ -5,6 +5,7 @@ Automatic sample rate switcher for CamillaDSP
 1. **It automatically updates the sample rate of CamillaDSP when the sample rate of the audio stream being captured changes.**
 
 This is obtained by subscribing to Alsa events, reading the current sample rate when it changes, and updating CamillaDSP configuration. To this end, some commands of the websocket API's are issued via websocket. The command `GetConfig` provides the current configuration; if the current configuration is not valid, the `GetPreviousConfig` comand is issued. Finally, the command `SetConfig` flushes the update configuration to the DSP.
+This part of the project is inspired by `pavhofman`'s [gaudio_ctl](https://github.com/pavhofman/gaudio_ctl)
 
 2. **It forces reload of a valid configuration whenever a USB DAC becomes available.**
 
