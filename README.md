@@ -50,5 +50,7 @@ The software is coded in C language with use of the asound and libwebsockets C l
 - _--syslog_ redirects log messages to _syslog_ (otherwise messages are sent to standard error)
 - _--usbmon_ enables catching of signals that notify availabilty of the USB DAC
 # Final notes
-Comments in the source code will, hopefully, help to understand the what and the how. Users are encouraged to improve the code and to add features.
+Comments in the source code will, hopefully, help to understand the what and the how. 
+
+Users are encouraged to improve the code and to add features.
   
