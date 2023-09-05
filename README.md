@@ -1,14 +1,14 @@
 # camilladsp-setrate
 Automatic sample rate switcher for CamillaDSP
 
-**_camilladsp-setrate_** performs two useful actions:
-1. **It automatically updates the sample rate of CamillaDSP when the sample rate of the audio stream being captured changes.**
+This tool performs two useful tasks:
+1. **_camilladsp-setrate_ automatically updates the sample rate of CamillaDSP when the sample rate of the audio stream being captured changes.**
 
 This is obtained by subscribing to Alsa events, reading the current sample rate when it changes, and updating CamillaDSP configuration. To this end, some commands of the [websocket interface]( https://github.com/HEnquist/camilladsp/blob/master/websocket.md) are issued via websocket. The command `GetConfig` provides the current configuration; if the current configuration is not valid, the `GetPreviousConfig` command is issued. Finally, the updated configuration is flushed to the DSP with the command `SetConfig` .
 
 This part of the project is inspired by `pavhofman`'s [gaudio_ctl](https://github.com/pavhofman/gaudio_ctl)
 
-2. **It forces reload of a valid configuration whenever a USB DAC becomes available.**
+2. **_camilladsp-setrate_ forces reload of a valid configuration whenever a USB DAC becomes available.**
 
 This is useful, for example, when switching the input of your DAC from S/P-DIF to USB (whithout camilladsp-setrate, CamillaDSP would hang with an invalid configuration).
 It is meant for use on a USB gadget capture device. I have tested it on my Raspberry Pi 4. It expect it to also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry PI 3A. Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.
