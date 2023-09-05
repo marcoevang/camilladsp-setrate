@@ -20,18 +20,27 @@ The software is coded in C language with use of the asound and libwebsockets C l
 - Libwebsocket C library
 ## Installation
 1. Install the development environment and the required libraries
-> sudo apt update  
-> sudo apt install build-essential libasound2-dev libwebsockets  
+```
+sudo apt update  
+sudo apt install build-essential libasound2-dev libwebsockets
+```
 2. Build the executable file
->make
+```
+make
+```
 3. Copy the executable file to `/usr/local/bin`
-> make install
+```
+make install
+```
 4. Copy the file `camilladsp-setrate.service` to `/etc/systemd/system` and enable the service
-> sudo cp camilladsp-setrate.service /etc/systemd/system
-> 
-> sudo systemctl enable camilladsp-setrate
+```
+sudo cp camilladsp-setrate.service /etc/systemd/system
+sudo systemctl enable camilladsp-setrate
+```
 5. Reboot the system
-> sudo reboot
+```
+sudo reboot
+```
 ## Running
 **_camilladsp-setrate_** starts as a service at boot.  
 The executable file provides a few options to log events and to enable the usb monitoring:
@@ -43,7 +52,6 @@ The executable file provides a few options to log events and to enable the usb m
 - _--syslog_ redirects log messages to _syslog_ (otherwise messages are sent to standard error)
 - _--usbmon_ enables catching of signals that notify availabilty of the USB DAC
 ## Final notes
-Comments in the source code will, hopefully, help to understand the what and the how. 
-
+Comments in the source code will, hopefully, help to understand the what and the how.  
 Users are encouraged to improve the code and to add features.
   
