@@ -1,6 +1,7 @@
 # camilladsp-setrate
 Automatic sample rate switcher for CamillaDSP
 
+
 This tool performs two useful tasks:
 1. **_camilladsp-setrate_ automatically updates the sample rate of CamillaDSP when the sample rate of the audio stream being captured changes.**
 
