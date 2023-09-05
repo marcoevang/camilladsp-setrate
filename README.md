@@ -8,7 +8,7 @@ This is useful, for example, when switching the input of your DAC from USB to S/
 This feature must be enabled with a command line option (see _Running_ section).  
 This part of the project is inspired by `pavhofman`'s [gaudio_ctl](https://github.com/pavhofman/gaudio_ctl).  
 ## Context
-**_camilladsp-setrate_** is meant for use with a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry PI 3A, Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.  
+**_camilladsp-setrate_** is meant for use with a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry PI 3A+, Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.  
 This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux distributions as well.  
 The software is coded in C language with use of the asound and libwebsockets C library API's.
 ## Requirements
@@ -50,13 +50,13 @@ camiladsp-setrate [OPTIONS]
 OPTIONS:  
 - `--err`       enables output of error log messages
 - `--warn`      enables output of warning log messages
-- `--user`      enables output of log messages on key events
+- `--user`      enables output of log messages concerning key events
 - `--notice`    enables output of log messages useful to track what's happening inside the camilladsp-setrate process
 - `--timestamp` causes a timestamp to be prepended to each log message
 - `--syslog`    redirects log messages to _syslog_ (otherwise messages are sent to standard error)
 - `--usbmon`    enables catching of signals that notify availabilty of the USB DAC
   
-Usually the process starts as a service at boot. You can edit the file `camilladsp-setrate.service` to set the desired options.
+Usually the process starts as a service at boot. You can edit the file `camilladsp-setrate.service` to set the desired options.  
 After modifications to the service file run the following commands:
 ```
 sudo systemctl daemon-reload
