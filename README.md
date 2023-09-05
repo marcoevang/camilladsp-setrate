@@ -22,3 +22,5 @@ This project was developed on DietPi 64-bit, but other Debian-based Linux distri
 > sudo cp camilladsp-setrate.service /etc/systemd/system
 > 
 > sudo systemctl enable camilladsp-setrate
+> 5. Reboot the system
+> sudo reboot
