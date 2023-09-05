@@ -11,8 +11,7 @@ This part of the project is inspired by `pavhofman`'s [gaudio_ctl](https://githu
 
 2. **_camilladsp-setrate_ forces reload of a valid configuration whenever a USB DAC becomes available.**
 
-This is useful, for example, when switching the input of your DAC from USB to S/P-DIF; whithout `camilladsp-setrate`, when switching back to USB CamillaDSP would hang up due to an invalid configuration). This is done by performing the same process described above for sample rate change when a signal is sent to the _camilladsp-setrate_ process by means of an `udev rule`.  
-
+This is useful, for example, when switching the input of your DAC from USB to S/P-DIF; whithout `camilladsp-setrate`, when switching back to USB, CamillaDSP would hang up due to an invalid configuration. This result is obtained by performing the same process described above for sample rate. but this time when a signal is sent to the _camilladsp-setrate_ process by means of an `udev rule`.  
 This feature may be enabled with a command line option (see _Running_ section).
 
 This part of the project is inspired by `pohofman`'s [gaudio_ctl](https://github.com/pavhofman/gaudio_ctl).
@@ -50,5 +49,6 @@ The software is coded in C language with use of the asound and libwebsockets C l
 - _--timestamp_ causes a timestamp to be prepended to each log message
 - _--syslog_ redirects log messages to _syslog_ (otherwise messages are sent to standard error)
 - _--usbmon_ enables catching of signals that notify availabilty of the USB DAC
-
+# Final notes
+Comments in the source code will, hopefully, help to understand the what and the how. Users are encouraged to improve the code and to add features.
   
