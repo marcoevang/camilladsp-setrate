@@ -42,4 +42,13 @@ The software is coded in C language with use of the asound and libwebsockets C l
 > 5. Reboot the system
 > sudo reboot
 # Running
-**_camilladsp-setrate_** starts a service at boot. The executable file provides a few options to log events and to enable
+**_camilladsp-setrate_** starts as a service at boot. The executable file provides a few options to log events and to enable the usb monitoring:
+- _--err_ enables outout of error log messages
+- _--warn_ enables output of warning log messages
+- _--user_ enables output of log messages on key events
+- _notice_ enables output of log messages useful to track what's happening inside the camilladsp-setrate process
+- _--timestamp_ causes a timestamp to be prepended to each log message
+- _--syslog_ redirects log messages to _syslog_ (otherwise messages are sent to standard error)
+- _--usbmon_ enables catching of signals that notify availabilty of the USB DAC
+
+  
