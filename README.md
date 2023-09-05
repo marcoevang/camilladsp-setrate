@@ -18,3 +18,5 @@ This project was developed on DietPi 64-bit, but other Debian-based Linux distri
 >make
 3. Copy the executable file to `/usr/local/bin`
 > make install
+4. Copy the file `camilladsp-setrate.service` to `/etc/systemd/system`
+> sudo cp camilladsp-setrate.service /etc/systemd/system
