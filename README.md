@@ -9,24 +9,25 @@ This is obtained by subscribing to Alsa events, reading the current sample rate 
 
 2. **_camilladsp-setrate_ forces reload of a valid configuration whenever a USB DAC becomes available.**
 
-This is useful, for example, when switching the input of your DAC from USB to S/P-DIF; whithout `camilladsp-setrate`, when switching back to USB, CamillaDSP would hang up due to an invalid configuration. This result is obtained by performing the same process described above for sample rate. but this time when a signal is sent to the _camilladsp-setrate_ process by means of an `udev rule`.  
-This feature may be enabled with a command line option (see _Running_ section).  
+This is useful, for example, when switching the input of your DAC from USB to S/P-DIF; whithout `camilladsp-setrate`, when switching back to USB, CamillaDSP would hang up due to an invalid configuration. This result is obtained by performing the same process described above for sample rate. In this case, however, the process is initiated by a signal sent to the _camilladsp-setrate_ process by means of an `udev rule`.  
+This feature must be enabled with a command line option (see _Running_ section).  
 This part of the project is inspired by `pavhofman`'s [gaudio_ctl](https://github.com/pavhofman/gaudio_ctl).
 
 ## Context
-**_camilladsp-setrate_** is meant for use on a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry PI 3A, Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.
-This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux distributions as well.
+**_camilladsp-setrate_** is meant for use with a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry PI 3A, Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.  
+This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux distributions as well.  
 The software is coded in C language with use of the asound and libwebsockets C library API's.
 ## Requirements
+- A board featuring a USB gadget capture device
 - Linux operating system
 - C language development environment
-- Asound C library
+- Alsa sound system
+- Alsa C library
 - Libwebsocket C library
 ## Installation
 1. Install the development environment and the required libraries
-> sudo apt update
-
-> sudo apt install build-essential libasound2-dev libwebsockets
+> sudo apt update  
+> sudo apt install build-essential libasound2-dev libwebsockets  
 2. Build the executable file
 >make
 3. Copy the executable file to `/usr/local/bin`
@@ -37,7 +38,7 @@ The software is coded in C language with use of the asound and libwebsockets C l
 > sudo systemctl enable camilladsp-setrate
 5. Reboot the system
 > sudo reboot
-# Running
+## Running
 **_camilladsp-setrate_** starts as a service at boot. 
 The executable file provides a few options to log events and to enable the usb monitoring:
 - _--err_ enables outout of error log messages
