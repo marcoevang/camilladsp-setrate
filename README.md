@@ -12,7 +12,7 @@ This part of the project is inspired by `pavhofman`'s [gaudio_ctl](https://githu
 This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux distributions as well.  
 The software is coded in C language with use of the asound and libwebsockets C library API's.
 ## Requirements
-- A board featuring a USB gadget capture device
+- A working gadget USB capture device
 - Linux operating system
 - C language development environment
 - Alsa sound system
