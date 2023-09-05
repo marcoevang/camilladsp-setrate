@@ -45,7 +45,7 @@ sudo reboot
 **_camilladsp-setrate_** provides a few options to log events and to enable the usb monitoring.  
 The executable is launched as follows:  
 ```
-camiladsp-setrate [OPTIONS]
+camilladsp-setrate [OPTIONS]
 ```
 OPTIONS:  
 - `--err`       enables output of error log messages
