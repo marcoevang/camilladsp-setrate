@@ -1,5 +1,5 @@
 # camilladsp-setrate
-Automatic sample rate switcher for CamillaDSP
+**Automatic sample rate switcher for CamillaDSP**
 
 
 This tool performs two useful tasks:
@@ -16,7 +16,7 @@ This feature may be enabled with a command line option (see _Running_ section).
 
 This part of the project is inspired by `pohofman`'s [gaudio_ctl](https://github.com/pavhofman/gaudio_ctl).
 
-# Context
+## Context
 **_camilladsp-setrate_** is meant for use on a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry PI 3A, Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.
 This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux distributions as well.
 The software is coded in C language with use of the asound and libwebsockets C library API's.
@@ -49,7 +49,7 @@ The software is coded in C language with use of the asound and libwebsockets C l
 - _--timestamp_ causes a timestamp to be prepended to each log message
 - _--syslog_ redirects log messages to _syslog_ (otherwise messages are sent to standard error)
 - _--usbmon_ enables catching of signals that notify availabilty of the USB DAC
-# Final notes
+## Final notes
 Comments in the source code will, hopefully, help to understand the what and the how. 
 
 Users are encouraged to improve the code and to add features.
