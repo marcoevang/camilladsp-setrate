@@ -1,2 +1,2 @@
 # camilladsp-setrate
-Automatic sample rate switching for CamillaDSP
+Automatic sample rate switcher for CamillaDSP
