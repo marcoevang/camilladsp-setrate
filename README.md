@@ -42,15 +42,27 @@ sudo systemctl enable camilladsp-setrate
 sudo reboot
 ```
 ## Running
-**_camilladsp-setrate_** starts as a service at boot.  
-The executable file provides a few options to log events and to enable the usb monitoring:
-- _--err_ enables outout of error log messages
-- _--warn_ enables output of warning log messages
-- _--user_ enables output of log messages on key events
-- _--notice_ enables output of log messages useful to track what's happening inside the camilladsp-setrate process
-- _--timestamp_ causes a timestamp to be prepended to each log message
-- _--syslog_ redirects log messages to _syslog_ (otherwise messages are sent to standard error)
-- _--usbmon_ enables catching of signals that notify availabilty of the USB DAC
+**_camilladsp-setrate_** provides a few options to log events and to enable the usb monitoring.  
+The executable is launched as follows:  
+```
+camiladsp-setrate [OPTIONS]
+```
+OPTIONS:  
+- `--err`       enables output of error log messages
+- `--warn`      enables output of warning log messages
+- `--user`      enables output of log messages on key events
+- `--notice`    enables output of log messages useful to track what's happening inside the camilladsp-setrate process
+- `--timestamp` causes a timestamp to be prepended to each log message
+- `--syslog`    redirects log messages to _syslog_ (otherwise messages are sent to standard error)
+- `--usbmon`    enables catching of signals that notify availabilty of the USB DAC
+  
+Usually the process starts as a service at boot. You can edit the file `camilladsp-setrate.service` to set the desired options.
+After modifications to the service file run the following commands:
+```
+sudo systemctl daemon-reload
+sudo restart camilladsp-setrate
+```
+or reboot the system.
 ## Final notes
 Comments in the source code will, hopefully, help to understand the what and the how.  
 Users are encouraged to improve the code and to add features.
