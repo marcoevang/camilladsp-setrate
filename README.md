@@ -1,13 +1,12 @@
-# Automatic sample rate switcher for Henrik Enquist's [CamillaDSP](https://github.com/HEnquist/camilladsp)
+# Automatic sample rate switcher for [CamillaDSP](https://github.com/HEnquist/camilladsp)
 This tool provides two useful services:
 1. **Automatic updating of the sample rate when that of the audio stream being captured changes.**
 
 This is obtained by subscribing to Alsa events, reading the current sample rate when it changes, and updating CamillaDSP configuration. To this end, some commands of the [CamillaDSP websocket interface]( https://github.com/HEnquist/camilladsp/blob/master/websocket.md) are issued. The command `GetConfig` provides the current configuration; if the current configuration is not valid, the `GetPreviousConfig` command is issued. Then the _sample rate_ value is replaced with the value provided by the alsa control. The _chunk size_ value is as well updated as a function of the sample rate.  Finally, the updated configuration is flushed to the DSP with the command `SetConfig`.  
-This part of the project is inspired by pavhofman's [gaudio_ctl](https://github.com/pavhofman/gaudio_ctl).
 
 2. **Automatic reloading of a valid configuration whenever a USB DAC becomes available.**    
 
-This is useful, for example, when switching the input of your DAC from USB to S/P-DIF. Whithout `camilladsp-setrate`, _CamillaDSP_ would hang up when switching back to USB. This result is obtained by performing the same process described above for sample rate. In this case, however, the process is initiated by a `SIGHUP` signal sent to the _camilladsp-setrate_ process by means of an `udev rule`.   
+This is useful, for example, when you switch the input of your DAC from USB to S/P-DIF. When this happens, _CamillaDSP_ locks out as the playback device is no longer valid, and the situation remains even after switching back to the USB input.  `camilladsp-setrate` reloads a valid configuration as soon as the USB DAC becomes available again, thus unlocking _CamillaDSP_. This result is obtained by performing the same process described above for sample rate. In this case, however, the process is initiated by a `SIGHUP` signal sent to the _camilladsp-setrate_ process by means of an `udev rule`.   
 
 ## Context
 **_camilladsp-setrate_** is meant for use with a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry Pi CM4 and BeagleBones, but I have no means of doing tests on such platforms.  
