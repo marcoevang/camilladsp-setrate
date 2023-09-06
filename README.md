@@ -39,7 +39,7 @@ make install
 sudo cp camilladsp-setrate.service /etc/systemd/system
 sudo systemctl enable camilladsp-setrate
 ```
-5. Edit the file `85-DAC.rules/etc/udev/rules.d` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your DAC. You can obtain those values with the following command (ID_VENDOR_ID=Vendor, ID_MODEL_ID=ProdID):
+5. Edit the file `85-DAC.rules` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your DAC. You can obtain those values with the following command (ID_VENDOR_ID=Vendor, ID_MODEL_ID=ProdID):
 ```
 usb-devices
 ```
