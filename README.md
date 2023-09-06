@@ -43,7 +43,7 @@ sudo systemctl enable camilladsp-setrate
 ```
 usb-devices
 ```
-6. Copy the file `85-DAC.rules/etc/udev/rules.d` to the `udev` rules folder
+6. Copy the file `85-DAC.rules` to the `udev` rules folder
 ```
 sudo cp 85-DAC.rules /etc/udev/rules.d
 ```
@@ -52,16 +52,16 @@ sudo cp 85-DAC.rules /etc/udev/rules.d
 sudo reboot
 ```
 ## Running
-**_camilladsp-setrate_** provides a few options to enable log cwmessages.  
+**_camilladsp-setrate_** provides a few options to enable log messages.  
 The executable is launched as follows:  
 ```
 camilladsp-setrate [OPTIONS]
 ```
 OPTIONS:  
-- `--err`       enables output of error log messages
-- `--warn`      enables output of warning log messages
-- `--user`      enables output of log messages concerning key events
-- `--notice`    enables output of log messages useful to track what's happening inside the _camilladsp-setrate_ process
+- `--err`       enables error log messages
+- `--warn`      enables warning log messages
+- `--user`      enables log messages concerning key events
+- `--notice`    enables log messages useful to track what's happening inside the _camilladsp-setrate_ process
 - `--timestamp` causes a timestamp to be prepended to each log message
 - `--syslog`    redirects log messages to _syslog_ (otherwise messages are sent to standard error)
   
