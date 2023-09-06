@@ -7,7 +7,7 @@ This part of the project is inspired by pavhofman's [gaudio_ctl](https://github.
 
 2. **Automatic reloading of a valid configuration whenever a USB DAC becomes available.**    
 
-This is useful, for example, when switching the input of your DAC from USB to S/P-DIF. Whithout `camilladsp-setrate`, _CamillaDSP_ would hang up when switching back to USB. This result is obtained by performing the same process described above for sample rate. In this case, however, the process is initiated by a signal sent to the _camilladsp-setrate_ process by means of an `udev rule`.   
+This is useful, for example, when switching the input of your DAC from USB to S/P-DIF. Whithout `camilladsp-setrate`, _CamillaDSP_ would hang up when switching back to USB. This result is obtained by performing the same process described above for sample rate. In this case, however, the process is initiated by a `SIGHUP` signal sent to the _camilladsp-setrate_ process by means of an `udev rule`.   
 
 ## Context
 **_camilladsp-setrate_** is meant for use with a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.  
@@ -34,18 +34,18 @@ make
 ```
 make install
 ```
-4. Copy the file `camilladsp-setrate.service` to `/etc/systemd/system` and enable the service
+4. Copy the file `camilladsp-setrate.service` to the system services folder and enable that service
 ```
 sudo cp camilladsp-setrate.service /etc/systemd/system
 sudo systemctl enable camilladsp-setrate
 ```
-5. Edit the file `85-DAC.rules/etc/udev/rules.d` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your DAC. You can obtain those valuese with the following command (ID_VENDOR_ID=Vendor, ID_MODEL_ID=ProdID);
+5. Edit the file `85-DAC.rules/etc/udev/rules.d` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your DAC. You can obtain those values with the following command (ID_VENDOR_ID=Vendor, ID_MODEL_ID=ProdID):
 ```
 usb-devices
 ```
 6. Copy the file `85-DAC.rules/etc/udev/rules.d` to the `udev` rules folder
 ```
-sudo cp 85-DAC.rules /etc/udev/rules.d`
+sudo cp 85-DAC.rules /etc/udev/rules.d
 ```
 7. Reboot the system
 ```
@@ -73,6 +73,5 @@ sudo restart camilladsp-setrate
 ```
 or reboot the system.
 ## Final notes
-Comments in the source code will, hopefully, help to understand the what and the how.  
-Users are encouraged to improve the code and to add features.
+Comments in the source code will, hopefully, help to understand the what and the how.
   
