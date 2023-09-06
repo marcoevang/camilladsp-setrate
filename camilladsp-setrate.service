@@ -1,0 +1,18 @@
+[Unit]
+Description=Sample Rate Changer Daemon for CamillaDSP
+After=camilladsp.service 
+
+[Service]
+ExecStart=/usr/local/bin/camilladsp-setrate --err --warn --user --syslog
+Restart=no
+RestartSec=1
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=set_samplerate
+CPUSchedulingPolicy=fifo
+CPUSchedulingPriority=10
+User=dietpi
+Group=dietpi
+
+[Install]
+WantedBy=camilladsp.service
