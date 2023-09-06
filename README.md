@@ -73,5 +73,6 @@ sudo restart camilladsp-setrate
 ```
 or reboot the system.
 ## Final notes
-Comments in the source code will, hopefully, help to understand the what and the how.
+Comments in the source code will, hopefully, help to understand the what and the how.  
+If your _CamillaDSP_ configuration is big, you may need to change the `BUFLEN` value in the file `setrate.h`.
   
