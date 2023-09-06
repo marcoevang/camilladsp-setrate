@@ -10,7 +10,7 @@ This part of the project is inspired by pavhofman's [gaudio_ctl](https://github.
 This is useful, for example, when switching the input of your DAC from USB to S/P-DIF. Whithout `camilladsp-setrate`, _CamillaDSP_ would hang up when switching back to USB. This result is obtained by performing the same process described above for sample rate. In this case, however, the process is initiated by a `SIGHUP` signal sent to the _camilladsp-setrate_ process by means of an `udev rule`.   
 
 ## Context
-**_camilladsp-setrate_** is meant for use with a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry CM4 and BeagleBones, but I have no means of doing tests on such platforms.  
+**_camilladsp-setrate_** is meant for use with a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry Pi CM4 and BeagleBones, but I have no means of doing tests on such platforms.  
 This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux distributions as well.  
 The software is coded in C language with use of the alsa and libwebsockets C library API's.
 ## Requirements
