@@ -49,6 +49,10 @@ void alsa_init()
     return;
 }
 
+
+///////////////////////////////////////
+// Close alsa control
+///////////////////////////////////////
 void alsa_close()
 {
     int err;
