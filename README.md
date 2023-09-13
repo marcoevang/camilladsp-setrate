@@ -11,7 +11,7 @@ This feature is only applicable to USB DACs.
 
 ## Context
 **_camilladsp-setrate_** is meant for use with a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry Pi CM4 and BeagleBones, but I have no means of doing tests on such platforms.  
-This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux flavors as well.  
+This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distributions and arguably on other Linux flavors as well.  
 The software is coded in C language with use of the alsa and libwebsockets C library API's.
 ## Requirements
 - A working gadget USB capture device
