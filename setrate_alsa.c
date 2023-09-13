@@ -63,24 +63,6 @@ void alsa_close()
     }
 }
 
-///////////////////////////////////////
-// Subscribe to alsa events
-///////////////////////////////////////
-/*
-void alsa_subscribe(int enable)
-{
-    int err;
-
-    err = snd_ctl_subscribe_events(ctl, enable);
-
-    if (err < 0) 
-    {
-	writelog(ERR, "Cannot subscribei/unsubscribe alsa events: %s\n", snd_strerror(err));
-	snd_ctl_close(ctl);
-	exit(FAIL);
-    }
-}
-*/
 
 ///////////////////////////////////////
 // Get sample rate on change
