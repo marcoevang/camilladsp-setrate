@@ -195,18 +195,21 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
 
             break;
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-            // The connection ended.
+            // Connection ended with error.
             writelog(WARN, "Callback: LWS_CALLBACK_CLIENT_CONNECTION_ERROR\n");
+	    change_state(WAIT_RATE_CHANGE);
 	    break;
         case LWS_CALLBACK_CLIENT_CLOSED:
-            // The connection ended.
+            // Connection closed by client.
             writelog(NOTICE, "Callback: LWS_CALLBACK_CLIENT_CLOSED\n");
 	    break;
         case LWS_CALLBACK_CLOSED:
             writelog(WARN, "Callback: LWS_CALLBACK_CLOSED\n");
-            // The connection ended.
-            // a new connection is requested and the config update process is restarted.
+            // Connection closed by server.
+            // A new connection is requested and the config update process is restarted.
+	    // TO BE MANAGED AND TESTED IN FUTURE VERSION.
             // change_state(RECONNECTION_REQUEST);
+	    change_state(WAIT_RATE_CHANGE);
             break;
         default:
             writelog(NOTICE, "Unmanaged Callback. Reason = %d\n", reason);
