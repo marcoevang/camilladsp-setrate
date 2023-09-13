@@ -75,4 +75,4 @@ or reboot the system.
 ## Final notes
 Comments in the source code will, hopefully, help to understand the what and the how.  
 If your _CamillaDSP_ configuration is big, you may need to change the `BUFLEN` value in the file `setrate.h`.  
-_camilladsp-setrate_ also works with CamillaDSP v2, which is now in alpha release.  
+_camilladsp-setrate_ also works with alpha 2 release of CamillaDSP v2.  
