@@ -2,15 +2,16 @@
 This tool provides two useful services:
 1. **Automatic updating of the sample rate when that of the audio stream being captured changes.**
 
-This is obtained by subscribing to Alsa events, reading the current sample rate when it changes, and updating CamillaDSP configuration. To this end, some commands of the [CamillaDSP websocket interface]( https://github.com/HEnquist/camilladsp/blob/master/websocket.md) are issued. The command `GetConfig` provides the current configuration; if the current configuration is not valid, the `GetPreviousConfig` command is issued. Then the _sample rate_ value is replaced with the value provided by the alsa control. The _chunk size_ value is as well updated as a function of the sample rate.  Finally, the updated configuration is flushed to the DSP with the command `SetConfig`.  
+This is obtained by subscribing to Alsa events, reading the current sample rate when it changes, and updating CamillaDSP configuration accordingly. To this end, some commands of the [CamillaDSP websocket interface]( https://github.com/HEnquist/camilladsp/blob/master/websocket.md) are issued. The command `GetConfig` provides the current configuration; if the current configuration is not valid, the `GetPreviousConfig` command is issued. Then the _sample rate_ value is replaced with the value provided by the alsa control. The _chunk size_ value is as well updated as a function of the sample rate.  Finally, the updated configuration is flushed to the DSP with the command `SetConfig`.  
 
 2. **Automatic reloading of a valid configuration whenever a USB DAC becomes available.**    
 
-This is useful, for example, when you switch the input of your DAC from USB to S/P-DIF. When this happens, _CamillaDSP_ locks out as the playback device is no longer valid, and the situation remains even after switching back to the USB input.  `camilladsp-setrate` reloads a valid configuration as soon as the USB DAC becomes available again, thus unlocking _CamillaDSP_. This result is obtained by performing the same process described above for sample rate. In this case, however, the process is initiated by a `SIGHUP` signal sent to the _camilladsp-setrate_ process by means of an `udev rule`.   
+This is useful, for example, when you switch the input of your DAC from USB to non-USB. When this happens, _CamillaDSP_ locks out as the playback device is no longer valid, and the situation remains even after switching back to the USB input.  `camilladsp-setrate` reloads a valid configuration as soon as the USB DAC becomes available again, thus unlocking _CamillaDSP_. This result is obtained by performing the same process described above for sample rate. In this case, however, the process is initiated by a `SIGHUP` signal sent to the _camilladsp-setrate_ process by means of an `udev rule` (see the `88-DAC.rules` file).  
+This feature is only applicable to USB DACs.
 
 ## Context
 **_camilladsp-setrate_** is meant for use with a USB gadget capture device. I have tested it on my Raspberry Pi 4. I expect it may also work on other boards supporting USB gadget, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry Pi CM4 and BeagleBones, but I have no means of doing tests on such platforms.  
-This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux distributions as well.  
+This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distribution and arguably on other Linux flavors as well.  
 The software is coded in C language with use of the alsa and libwebsockets C library API's.
 ## Requirements
 - A working gadget USB capture device
@@ -18,7 +19,7 @@ The software is coded in C language with use of the alsa and libwebsockets C lib
 - C language development environment
 - Alsa sound system
 - Alsa C library
-- Libwebsocket C library
+- Libwebsockets C library
 ## Installation
 1. Install the development environment and the required libraries
 ```
@@ -48,7 +49,7 @@ sudo cp 85-DAC.rules /etc/udev/rules.d
 ```
 7. Reboot the system
 ```
-sudo reboot
+sudo shutdown -r now
 ```
 ## Running
 **_camilladsp-setrate_** provides a few options to enable log messages.  
@@ -65,7 +66,7 @@ OPTIONS:
 - `--syslog`    redirects log messages to _syslog_ (otherwise messages are sent to standard error)
   
 Usually the process starts as a service at boot. You can edit the file `camilladsp-setrate.service` to set the desired options.  
-After modifications to the service file run the following commands:
+After modifications to the service file you have to make the `udev` daemon reload the rules:
 ```
 sudo systemctl daemon-reload
 sudo restart camilladsp-setrate
@@ -73,5 +74,5 @@ sudo restart camilladsp-setrate
 or reboot the system.
 ## Final notes
 Comments in the source code will, hopefully, help to understand the what and the how.  
-If your _CamillaDSP_ configuration is big, you may need to change the `BUFLEN` value in the file `setrate.h`.
-  
+If your _CamillaDSP_ configuration is big, you may need to change the `BUFLEN` value in the file `setrate.h`.  
+_camilladsp-setrate_ also works with CamillaDSP v2, which is now in alpha release.  
