@@ -39,10 +39,12 @@ make install
 sudo cp camilladsp-setrate.service /etc/systemd/system
 sudo systemctl enable camilladsp-setrate
 ```
-5. Edit the file `85-DAC.rules` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your DAC. You can obtain those values with the following command (ID_VENDOR_ID=Vendor, ID_MODEL_ID=ProdID):
+5. Edit the file `85-DAC.rules` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your DAC. You can obtain those values with the following command :
 ```
 usb-devices
 ```
+(_Vendor_ corresponds to `ID_VENDOR_ID` and _ProdID_ corresponds to `ID_MODEL_ID`)  
+
 6. Copy the file `85-DAC.rules` to the `udev` rules folder
 ```
 sudo cp 85-DAC.rules /etc/udev/rules.d
@@ -69,10 +71,11 @@ Usually the process starts as a service at boot. You can edit the file `camillad
 After modifications to the service file you have to make the `udev` daemon reload the rules:
 ```
 sudo systemctl daemon-reload
-sudo restart camilladsp-setrate
+sudo systemctl restart camilladsp-setrate
 ```
 or reboot the system.
 ## Final notes
+Instructions for installing the packages are valid on debian-based Linux distributions. On other Linux flavors (e.g. Fedora) the package manager might differ, and the name of the libraries might also differ slightly.  
 Comments in the source code will, hopefully, help to understand the what and the how.  
 If your _CamillaDSP_ configuration is big, you may need to change the `BUFLEN` value in the file `setrate.h`.  
-_camilladsp-setrate_ also works with alpha 2 release of CamillaDSP v2.  
+_camilladsp-setrate_ also works with alpha 2 release of CamillaDSP v2.
