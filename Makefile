@@ -10,8 +10,8 @@ LOCBINDIR = /usr/local/bin
 %.o: %.c $(INCLUDES)
 	$(CC) $(CCFLAGS) -c $< -o $@
 
-$(BIN): $(OBJS)
-	$(CC) $(OBJS) -o $(BINDIR)/$@ $(LDLIBS)
+$(BINDIR)/$(BIN): $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LDLIBS)
 
 install:
 	sudo cp $(BINDIR)/$(BIN) $(LOCBINDIR)
