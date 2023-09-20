@@ -1,5 +1,5 @@
 [Unit]
-Description=Sample Rate Changer Daemon for CamillaDSP
+Description=Automatic Sample Rate Changer Daemon for CamillaDSP
 After=camilladsp.service 
 
 [Service]

@@ -1,1 +1,1 @@
-SUBSYSTEM=="usb", ACTION=="add", ENV{ID_VENDOR_ID}=="XXXX", ENV{ID_MODEL_ID}=="YYYY", RUN+="/usr/bin/pkill -f -SIGHUP camilladsp-setrate"
+SUBSYSTEM=="usb", ACTION=="add", ENV{ID_VENDOR_ID}=="XXXX", ENV{ID_MODEL_ID}=="YYYY", RUN+="/usr/bin/pkill -f -SIGHUP  camilladsp-setrate"
