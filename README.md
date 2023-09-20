@@ -113,7 +113,7 @@ I strongly recommend not running ***camilladsp-setrate*** as *super-user*.
 ## Final notes
 Instructions for installing the packages are valid on debian-based Linux distributions. On other Linux flavors (e.g. Fedora) the package manager might differ, and the name of the libraries might also differ slightly.  
 The name of the capture device is given in the format required by `arecord`. If the `--device` option is omitted, the name is set to "hw:UAC2Gadget".
-The IP address and port of CamillaDSP websocket server are given in the format <address>:<port>. If port only is given (colon required), address is set to "localhost". If address only is given (colon may be omitted), port is set to 1234. If the `--server` option is omitted, address and port are set to "localhost:1234"
+The IP address and port of CamillaDSP websocket server are given in the format _address_:_port_. If port only is given (colon required), address is set to "localhost". If address only is given (colon may be omitted), port is set to 1234. If the `--server` option is omitted, address and port are set to "localhost:1234"
 If your _CamillaDSP_ configuration is big, you may need to change the `BUFLEN` value in the file `setrate.h`.  
 Comments in the source code will, hopefully, help to understand the what and the how.  
 _camilladsp-setrate_ also works with alpha releases of CamillaDSP v2.
