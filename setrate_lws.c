@@ -24,21 +24,22 @@ static int websocket_callback(struct lws *, enum lws_callback_reasons, void *, v
 static struct lws_protocols protocols[] = 
 { 
     {
-        "MyProtocol",            // Protocol name
-        websocket_callback,      // Callback function
-        0,                       // Per-session data size
-        BUFLEN,                  // Receive buffer
-        0,                       // ID number (reserved)
-        NULL,                    // User data
-        0                        // Attach count
+        "MyProtocol",			// Protocol name
+        websocket_callback,		// Callback function
+        0,				// Per-session data size
+        BUFLEN,				// Receive buffer
+        0,				// ID number (reserved)
+        NULL,				// User data
+        0				// Attach count
     },
-    { NULL, NULL, 0, 0 }         // Terminate the list
+    { NULL, NULL, 0, 0, 0, NULL, 0 }	// Terminate the list
 };
 
 struct lws_context_creation_info info;             // libwebsocket context creation info
 struct lws_client_connect_info connect_info;       // libwebsocket connection info
 struct lws *websocket;                             // Pointer to websocket struct
-const char *full_address = "ws://localhost:1234";  // URL of CamillaDSP Websocket Server
+char   server_address[MAX_SERVER_ADDRESS];         // IP address of CamillDSP Websocket Server
+int    server_port;			           // IP port of CamillDSP Websocket Server
 
 extern enum states state;                          // Global state
 char command[BUFLEN];                              // Global buffer for command string
@@ -70,11 +71,8 @@ void websocket_init()
     // Set up libwebsockets connection info
     memset(&connect_info, 0, sizeof(connect_info));
     connect_info.context = context;
-    connect_info.address = "localhost";
-    connect_info.port = 1234;
-    connect_info.path = "/";
-    connect_info.host = full_address;
-    connect_info.origin = full_address;
+    connect_info.address = server_address;
+    connect_info.port = server_port;
     connect_info.protocol = protocols[0].name;  // Use the first protocol defined
     connect_info.ietf_version_or_minus_one = -1;
 
@@ -94,13 +92,13 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
     switch (reason)
     {
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
-            writelog(NOTICE, "Connected to CamillaDSP Websocket Server\n");
+            writelog(NOTICE, "Connected to Websocket Server %s on port %d\n", server_address, server_port);
 
             if (state == CONNECTION_REQUEST || state == RECONNECTION_REQUEST)
             {
                 change_state(CONNECTED);
 
-                // Ask for a callback when server can accept the GetConfig command
+                // Ask for a callback when server can accept a command
                 lws_callback_on_writable(wsi);
             }
 
@@ -196,7 +194,7 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
             break;
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             // Connection ended with error.
-            writelog(WARN, "Callback: LWS_CALLBACK_CLIENT_CONNECTION_ERROR\n");
+            writelog(ERR, "Callback: Connection to server %s on port %d failed.\n", server_address, server_port);
 	    change_state(WAIT_RATE_CHANGE);
 	    break;
         case LWS_CALLBACK_CLIENT_CLOSED:

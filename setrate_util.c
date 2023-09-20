@@ -36,14 +36,14 @@ int prepare_setconfig_command(char *orig, int samplerate)
     int len;
     int n;
 
-    // sanity checks
-    if (!orig || !tag_samplerate || !tag_chunksize || !str_samplerate)
+    // sanity check
+    if (!orig || samplerate <= 0)
         return(FALSE);
 
     // Search for the tag identifying a None configuration
     tmpbuf = strstr(orig, tag_none);
 
-    // none_tag is founf, config is None
+    // none_tag is found, config is None
     if (tmpbuf) 
         return(FALSE);
 
@@ -71,18 +71,29 @@ int prepare_setconfig_command(char *orig, int samplerate)
     strcpy(tmpbuf, "{\"SetConfig\": \"");
 
     p1 = strstr(orig, "---") + 5;
+
+    if (!p1)
+        return(FALSE);
+
     p2 = strstr(orig, tag_samplerate);
 
-    if (p2 == NULL)
+    if (!p2)
         return(FALSE);
 
     p3 = strchr(p2, '\\');
+
+    if (!p3)
+        return(FALSE);
+
     p4 = strstr(orig, tag_chunksize);
 
-    if (p4 == NULL)
+    if (!p4)
         return(FALSE);
 
     p5 = strchr(p4, '\\');
+
+    if (!p5)
+        return(FALSE);
 
     n = p2 - p1 + len_tag_samplerate + 1;
 

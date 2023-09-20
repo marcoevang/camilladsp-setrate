@@ -17,6 +17,11 @@
 #define CUTLEN    160				// Size of a cutted string
 #define MAX_CONNECT 5				// Maximum number of connection attempts 
 
+#define MAX_DEVICE_NAME     40			// Maximum lenght of alsa device name
+#define MAX_SERVER_ADDRESS 128			// Maximum lenght of server full address
+
+#define VERSION     "1.0.0"			// Version number 
+
 #define ERR         LLL_ERR
 #define WARN        LLL_WARN
 #define USER        LLL_USER
@@ -47,3 +52,5 @@ void signal_handler(int);			// Signal handler (DAC availability)
 int prepare_setconfig_command(char *, int);	// Prepare the SetConfig command
 char *decode_state(enum states);		// Return a description of the state
 void writelog(int, char *, ...);                // Write log messages
+void print_usage(char *);                       // Print command line usage
+void split_address(char *);			// Split address:port into address and port

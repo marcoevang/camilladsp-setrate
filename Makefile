@@ -6,6 +6,7 @@ BIN       = camilladsp-setrate
 BINDIR    = ./bin
 LDLIBS    = -lasound -lwebsockets
 LOCBINDIR = /usr/local/bin
+SERVICE   = camilladsp-setrate.service 
 
 %.o: %.c $(INCLUDES)
 	$(CC) $(CCFLAGS) -c $< -o $@
@@ -15,7 +16,7 @@ $(BINDIR)/$(BIN): $(OBJS)
 
 install:
 	sudo cp $(BINDIR)/$(BIN) $(LOCBINDIR)
-    
+
 uninstall:
 	sudo rm -f $(LOCBINDIR)/$(BIN)
 

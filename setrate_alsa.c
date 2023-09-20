@@ -11,14 +11,15 @@
 #include <libwebsockets.h>
 #include "setrate.h"
 
-const char *device_name = "hw:UAC2Gadget";   // Sound card name 
+char device_name[MAX_DEVICE_NAME];               // Capture sound card name 
 
-snd_ctl_t *ctl;                              // Pointer to sound card control handle 
+snd_ctl_t *ctl;                     // Pointer to sound card control handle 
 
-snd_ctl_event_t *event;                      // Pointer to alsa event 
-const char *event_name;                      // Pointer to event name
-unsigned int event_numid;                    // Numeric event id
-snd_ctl_elem_value_t *elem_value;            // Pointer to event element value
+snd_ctl_event_t *event;             // Pointer to alsa event 
+const char *event_name;             // Pointer to event name
+unsigned int event_numid;           // Numeric event id
+snd_ctl_elem_value_t *elem_value;   // Pointer to event element value
+
 
 ///////////////////////////////////////
 // Initialise alsa control
@@ -32,7 +33,7 @@ void alsa_init()
 
     if (err < 0) 
     {
-        writelog(ERR, "Cannot open ctl for the device %s: %s\n", device_name, snd_strerror(err));
+	writelog(ERR, "Cannot open alsa control for the device %s: %s\n", device_name, snd_strerror(err));
         exit(FAIL);
     }
 
@@ -45,6 +46,8 @@ void alsa_init()
         snd_ctl_close(ctl);
         exit(FAIL);
     }
+
+    writelog(NOTICE, "Alsa control for the device %s successfully initialised\n", device_name);
 
     return;
 }
