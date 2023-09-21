@@ -14,4 +14,4 @@
 ### Fixed
 
 - [Makefile] Fixed BIN target
-- [setrate_main.c] added delay to avoid occasional ENODEV error reported by CamillaDSP (capture device not found) after restoring a valid configuration.
+- [setrate_main.c] added delay to avoid occasional ENODEV error reported by CamillaDSP (playback device not found) after reappearance of the playback device.
