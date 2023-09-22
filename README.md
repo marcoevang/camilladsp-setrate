@@ -7,16 +7,16 @@ This tool provides two useful services:
 1. **Automatic updating of the sample rate when that of the audio stream being captured changes.**
 
 This is obtained by subscribing to *Alsa* events, reading the current sample rate when it changes, and updating *CamillaDSP* configuration accordingly. To this end, some commands of the [CamillaDSP websocket interface]( https://github.com/HEnquist/camilladsp/blob/master/websocket.md) are issued. The command `GetConfig` provides the current configuration; if the current configuration is not valid, the `GetPreviousConfig` command is issued. Then the _sample rate_ value is replaced with the value provided by the *alsa control*. The _chunk size_ value is as well updated as a function of the sample rate.  Finally, the updated configuration is flushed to the DSP with the command `SetConfig`.  
-<u>This feature has only been tested with USB gadget capture devices</u>.
+<ins>This feature has only been tested with USB gadget capture devices</ins>.
 
 2. **Automatic reloading of a valid configuration whenever the playback device becomes available.**    
 
 This is useful, for example, when your DAC goes off or when unplugging or switching off the input  of your DAC corresponding to the playback device configured in *CamillaDSP*. When this happens, _CamillaDSP_ locks out as the playback device is no longer valid, and the situation remains even after the DAC comes back on or a valid input is switched back on.  `camilladsp-setrate` reloads a valid configuration as soon as the playback device becomes available again, thus unlocking _CamillaDSP_. This result is obtained by going through the same procedure described above for sample rate. In this case, however, the procedure is initiated by a `SIGHUP` signal sent to the _camilladsp-setrate_ process by means of an `udev rule` (see the `88-DAC.rules` file).  
-<u>This feature has only been tested with USB playback devices</u>.
+<ins>This feature has only been tested with USB playback devices</ins>.
 
 ## Context
-I have tested **_camilladsp-setrate_**  on my Raspberry Pi 4 in gadget mode with its USB-C port configured for audio capture. I expect it may also work on other boards supporting USB gadget mode, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry Pi CM4 and BeagleBones. Feel free to experiment with other types of capture devices as well.
-This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distributions and arguably on other Linux flavors as well. 
+I have tested **_camilladsp-setrate_**  on my Raspberry Pi 4 in gadget mode with its USB-C port configured for audio capture. I expect it may also work on other boards supporting USB gadget mode, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry Pi CM4 and BeagleBones. Feel free to experiment with other types of capture devices as well.  
+This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distributions and arguably on other Linux flavors as well.  
 The software is coded in C language with use of the *alsa* and *libwebsockets* C API's.
 
 ## Requirements
@@ -112,8 +112,8 @@ I strongly recommend not running ***camilladsp-setrate*** as *super-user*.
 
 ## Final notes
 Instructions for installing the packages are valid on debian-based Linux distributions. On other Linux flavors (e.g. Fedora) the package manager might differ, and the name of the libraries might also differ slightly.  
-The name of the capture device is given in the format required by `arecord`. If the `--device` option is omitted, the name is set to "hw:UAC2Gadget".
-The IP address and port of CamillaDSP websocket server are given in the format _address_:_port_. If port only is given (colon required), address is set to "localhost". If address only is given (colon may be omitted), port is set to 1234. If the `--server` option is omitted, address and port are set to "localhost:1234"
+The name of the capture device is given in the format required by `arecord`. If the `--device` option is omitted, the name is set to "hw:UAC2Gadget".  
+The IP address and port of CamillaDSP websocket server are given in the format _address_:_port_. If port only is given (colon required), address is set to "localhost". If address only is given (colon may be omitted), port is set to 1234. If the `--server` option is omitted, address and port are set to "localhost:1234".  
 If your _CamillaDSP_ configuration is big, you may need to change the `BUFLEN` value in the file `setrate.h`.  
 Comments in the source code will, hopefully, help to understand the what and the how.  
 _camilladsp-setrate_ also works with alpha releases of CamillaDSP v2.
