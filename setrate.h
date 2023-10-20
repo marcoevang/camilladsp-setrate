@@ -1,4 +1,5 @@
 ////////////////////////////////////////////////////
+//
 // camilladsp-setrate
 // Automatic sample rate switcher for CamillaDSP
 //
@@ -13,44 +14,80 @@
 #define SUCCESS     0
 #define DISABLE     0
 #define ENABLE      1
-#define BUFLEN   2048                          	// Max size of websocket receive buffer
-#define CUTLEN    160				// Size of a cutted string
-#define MAX_CONNECT 5				// Maximum number of connection attempts 
+#define BUFLEN  32768		    // Max size of websocket receive buffer
+#define CUTLEN    130		    // Size of a truncated string
 
-#define MAX_DEVICE_NAME     40			// Maximum lenght of alsa device name
-#define MAX_SERVER_ADDRESS 128			// Maximum lenght of server full address
+#define RECONN_INTERVAL    3*LWS_USEC_PER_SEC	// Interval between reconnection attempts
 
-#define VERSION     "1.0.0"			// Version number 
+#define MAX_DEVICE_NAME     40	    // Maximum lenght of alsa device name
+#define MAX_ADDRESS_LEN     80	    // Maximum lenght of  websocket server IP address
+
+#define VERSION     "2.0.0"	    // Version number 
 
 #define ERR         LLL_ERR
 #define WARN        LLL_WARN
 #define USER        LLL_USER
 #define NOTICE      LLL_NOTICE
 
+#define lwsl_ERR	    lwsl_err
+#define lwsl_WARN	    lwsl_warn
+#define lwsl_USER	    lwsl_user
+#define lwsl_NOTICE	    lwsl_notice
+#define writelog(A, ...)    lwsl_ ## A (__VA_ARGS__)
 
-// States of the config update process
-enum    states
-        {
-            CONNECTION_REQUEST,                 // A connection to CamillaDSP server has been requested
-            CONNECTED,                          // Connected to CamillaDSP websocket server
-            WAIT_RATE_CHANGE,                   // Waiting for a sample rate change 
-            WAIT_GET_CONFIG_RESPONSE,           // Waiting for the server to send the current config
-            GET_CONFIG_RESPONSE_RECEIVED,       // The current config has been received
-            WAIT_SET_CONFIG_RESPONSE,           // Waiting for response to config update command 
-            RECONNECTION_REQUEST                // Reconnection attempt if server closed the connection 
-        };
+
+// States of the finite-state machine
+typedef enum
+{
+    INIT,		    // Initialisation
+    START,		    // Initial state 
+    WAIT_RATE_CHANGE,	    // Waiting for a sample rate change
+    RATE_CHANGED,	    // Sample rate changed
+    WAIT_CONFIG,	    // Waiting for configuration
+    CONFIG_RECEIVED_OK,	    // The received configuration is valid
+    CONFIG_RECEIVED_KO,	    // The received configuration is not valid
+    WAIT_PREVIOUS_CONFIG,   // Waiting for the previous configuration
+    WAIT_RESPONSE	    // Waiting for response to "SetConfig"
+} states;
+
+
+// Events of the finite-state machine
+typedef enum
+{
+    RATE_CHANGE,    // Sample rate changed
+    CONNECT,	    // Connected to websocket server
+    DISCONNECT,	    // Disconnected from websocket server
+    WRITEABLE,	    // Server can receive a command
+    CONFIG_OK,	    // Configuration received, and it is valid
+    CONFIG_KO,	    // Configuration received, but it is not valid
+    RESPONSE_OK,    // Response to SetConfig received, and it is OK
+    RESPONSE_KO	    // Response t SetConfig received, but it not OK
+} events;
+
+#define FIRST_STATE INIT
+#define LAST_STATE  WAIT_RESPONSE
+#define FIRST_EVENT RATE_CHANGE
+#define LAST_EVENT  RESPONSE_KO
+
+#define SOUNDCARD_UP_SIG  SIGHUP    // Signal used to notify playback sound card availability 
+
 
 void alsa_init(void);			        // Initialise alsa control
-void alsa_close(void);			        // Close alsa control
-int alsa_getrate(void);				// Get sample rate from alsa control when it changes 
-void alsa_subscribe(int);			// Subscribe to alsa controls
 void websocket_init(void);			// Initialise websocket environment
-int connection_request(void);			// Attempt to connect to server
-void change_state(enum states);			// cwChange state and log at NOTICE level
+events  check_received_data(char *);		// Check if the received configuration is valid
+void fsm_init(void);				// Initialise the finite-state machine
+int  fsm_transit(events);			// Trigger a transition of the finite-state machine
+int  notify_success(void);			// Notify configuration update success
+int  notify_failure(void);			// Notify configuration update failure
+int  reconnection_request(void);		// Schedule a reconnection to the websocket server
+int  callback_on_writeable(void);               // Request a callback when the server can accept commands 
+int  send_get_config(void);                     // Send "GetConfig" command
+int  send_get_previous_config(void);            // Send "GetPreviousConfig" command
+int  send_set_config(void);			// Send "SetConfig" command
 void signal_control(int);			// Enable/disable signal catching
-void signal_handler(int);			// Signal handler (DAC availability)
-int prepare_setconfig_command(char *, int);	// Prepare the SetConfig command
-char *decode_state(enum states);		// Return a description of the state
-void writelog(int, char *, ...);                // Write log messages
+void soundcard_up_handler(int);			// Signal handler (Playback device availability)
+int  prepare_setconfig_command(char *, int);	// Prepare the SetConfig command
+char *decode_state(states);      		// Return a description of the state
+char *decode_event(events);      		// Return a description of the event
+char *decode_action(int (*)());      		// Return a description of the callabck function
 void print_usage(char *);                       // Print command line usage
-void split_address(char *);			// Split address:port into address and port

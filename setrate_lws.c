@@ -1,4 +1,5 @@
 ////////////////////////////////////////////////////
+//
 // camilladsp-setrate
 // Automatic sample rate switcher for CamillaDSP
 //
@@ -9,15 +10,14 @@
 
 #include <string.h>
 #include <libwebsockets.h>
-#include <stdarg.h>
 #include "setrate.h"
 
-extern int rate;                      // Current sample rate 
+extern int rate;	// Current sample rate 
+extern states state;	// Global state
 
 struct lws_context *context = NULL;  // Global websocket context
 
 // WebSocket callback function
-// static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len);
 static int websocket_callback(struct lws *, enum lws_callback_reasons, void *, void *, size_t);
 
 // WebSocket protocols
@@ -35,246 +35,253 @@ static struct lws_protocols protocols[] =
     { NULL, NULL, 0, 0, 0, NULL, 0 }	// Terminate the list
 };
 
-struct lws_context_creation_info info;             // libwebsocket context creation info
-struct lws_client_connect_info connect_info;       // libwebsocket connection info
-struct lws *websocket;                             // Pointer to websocket struct
-char   server_address[MAX_SERVER_ADDRESS];         // IP address of CamillDSP Websocket Server
-int    server_port;			           // IP port of CamillDSP Websocket Server
+static struct lws *websocket;		// Pointer to websocket struct
+char   server_address[MAX_ADDRESS_LEN]; // IP address of CamillDSP Websocket Server
+int    server_port;			// IP port of CamillDSP Websocket Server
+static lws_sorted_usec_list_t sul;	// Sorted list for libwebsockets scheduler
 
-extern enum states state;                          // Global state
-char command[BUFLEN];                              // Global buffer for command string
-int config_is_ok = TRUE;                           // Flag indicating the received config is valid
+// Parameters for libwebsockets ping-pong protocol 
+static const lws_retry_bo_t retry = 
+{
+    .secs_since_valid_ping   = 300,	// Interval between pings (in seconds)
+    .secs_since_valid_hangup = 370,	// Hangup timeout if server does not ping back with a pong
+};					// i.e. within 10 seconds after ping (370-360=10)
 
+
+char command[BUFLEN + LWS_PRE + 1];	// Global buffer for command string
 
 
 /////////////////////////////////////////////
+// Attempt connection to websocket server
+/////////////////////////////////////////////
+static void connection_request(lws_sorted_usec_list_t *_sul)
+{
+    struct lws_client_connect_info connect_info;    // libwebsocket connection info
+
+    // Set up libwebsockets connection info
+    memset(&connect_info, 0, sizeof(connect_info));
+
+    connect_info.protocol                  = protocols[0].name;
+    connect_info.ietf_version_or_minus_one = -1;
+    connect_info.context                   = context;
+    connect_info.port                      = server_port;
+    connect_info.address                   = server_address;
+    connect_info.retry_and_idle_policy     = &retry;
+    connect_info.pwsi                      = &websocket;
+ 
+    // Attempt to connect. In case of failure,
+    // a reconnection is scheduled after 1 second
+    if (!lws_client_connect_via_info(&connect_info))
+	lws_sul_schedule(context, 0, _sul, connection_request, RECONN_INTERVAL);
+}
+
+
+////////////////////////////////////////////
 // Initialise  websocket environment
-/////////////////////////////////////////////
+////////////////////////////////////////////
 void websocket_init()
 {
+    struct lws_context_creation_info info;	// libwebsocket context creation info
+
     // Set up libwebsockets context creation info
     memset(&info, 0, sizeof(info));
-    info.port = CONTEXT_PORT_NO_LISTEN;
+
+    info.port      = CONTEXT_PORT_NO_LISTEN;
     info.protocols = protocols;
-    info.gid = -1;
-    info.uid = -1;
 
     // Create libwebsockets context
     context = lws_create_context(&info);
 
     if (!context)
     {
-	writelog(ERR, "Failed to create libwebsockets context\n");
+	writelog(ERR, "%20s: Fatal error: Failed to create libwebsockets context\n", decode_state(state));
 	exit(FAIL);
     }
 
-    // Set up libwebsockets connection info
-    memset(&connect_info, 0, sizeof(connect_info));
-    connect_info.context = context;
-    connect_info.address = server_address;
-    connect_info.port = server_port;
-    connect_info.protocol = protocols[0].name;  // Use the first protocol defined
-    connect_info.ietf_version_or_minus_one = -1;
+    writelog(NOTICE, "%20s: Websocket environment initialised\n", decode_state(state));
 
-    // END WEBSOCKET INITIALISATION
+    // Initiate a connection by calling the scheduler
+    lws_sul_schedule(context, 0, &sul, connection_request, 100);
 }
 
 
-///////////////////////////////////////
+//////////////////////////////////////
 // Handle websocket callbacks
 ///////////////////////////////////////
 static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
+    int ret;
+
     // Disable catching of signal
     signal_control(DISABLE); 
+
+    ret = 0;
 
     // Handle callback depending on reason
     switch (reason)
     {
-        case LWS_CALLBACK_CLIENT_ESTABLISHED:
-            writelog(NOTICE, "Connected to Websocket Server %s on port %d\n", server_address, server_port);
-
-            if (state == CONNECTION_REQUEST || state == RECONNECTION_REQUEST)
-            {
-                change_state(CONNECTED);
-
-                // Ask for a callback when server can accept a command
-                lws_callback_on_writable(wsi);
-            }
-
-            break;
-        case LWS_CALLBACK_CLIENT_WRITEABLE:
-            writelog(NOTICE, "Client writeable\n");
-
-            switch(state)
-            {
-                case CONNECTED:
-                    // The server can accept the GetConfigCommand.
-                    strcpy(command + LWS_PRE, "\"GetConfig\"");
-                    writelog(USER, "Command  = %s\n", command + LWS_PRE);
-                    change_state(WAIT_GET_CONFIG_RESPONSE);
-                    lws_write(wsi, command + LWS_PRE, strlen(command + LWS_PRE), LWS_WRITE_TEXT);
-                    break;
-                case GET_CONFIG_RESPONSE_RECEIVED:
-                    // The server can accept a command.
-                    if (prepare_setconfig_command(command + LWS_PRE, rate) == TRUE)
-                    {
-                        // Received configuration is valid
-                        config_is_ok = TRUE;
-                        // Current config is valid. Send SetConfig command.
-                        change_state(WAIT_SET_CONFIG_RESPONSE);
-                    }
-                    else
-                    {
-                        // Received configuration is None or invalid
-                        if (config_is_ok == TRUE)
-                        {
-                            // Current config is None or invalid. Request previous config.
-                            config_is_ok = FALSE;
-                            writelog(WARN, "Current configuration is None or Invalid. Trying with previous config.\n");
-                            strcpy(command + LWS_PRE, "\"GetPreviousConfig\"");
-                            change_state(WAIT_GET_CONFIG_RESPONSE);
-                        }
-                        else
-                        {
-                            // Current and previous configs are both None ore invalid. Config update process abort.
-                            writelog(WARN, "Current and previous configurations are both None or Invalid. Config update process abort.\n");
-                            change_state(WAIT_RATE_CHANGE);
-                            lws_cancel_service(context);
-                            lws_close_reason(wsi, LWS_CLOSE_STATUS_NORMAL, NULL, 0);
-			    signal_control(ENABLE); 
-                            return (-1);
-                        }
-                    }
-
-                    writelog(USER, "Command  = %s\n", command + LWS_PRE);
-                    lws_write(wsi, command + LWS_PRE, strlen(command + LWS_PRE), LWS_WRITE_TEXT);
-                    break;
-                default:
-                    writelog(NOTICE, "Unforeseen state in LMS_CALLBACK_CLIENT_WRITABLE callback\n");
-                    break;
-            }
-
-            break;
-        case LWS_CALLBACK_CLIENT_RECEIVE:
-            writelog(NOTICE, "Data received\n");
-            writelog(USER, "Response = %s\n", (char *)in);
-
-            switch(state)
-            {
-                case WAIT_GET_CONFIG_RESPONSE:
-                    // Copy the received response to the command string
-                    // for later processing.
-                    strcpy(command + LWS_PRE, (char *)in);
-                    change_state(GET_CONFIG_RESPONSE_RECEIVED);
-                    // Ask for a callback when the server can accept the SetConfig command
-                    lws_callback_on_writable(wsi);
-                    break;
-                case WAIT_SET_CONFIG_RESPONSE:
-                    // The config update procedure ended. 
-                    // State is updated to wait for the next rate change.
-                    // Service is canceled and connection is closed.
-                    change_state(WAIT_RATE_CHANGE);
-                    lws_cancel_service(context);
-                    lws_close_reason(wsi, LWS_CLOSE_STATUS_NORMAL, NULL, 0);
-                    writelog(USER, "Config update success.\n");
-		    // Re-enable catching of signal
-		    signal_control(ENABLE); 
-                    return(-1);
-                default:
-                    writelog(WARN, "Config update abort due to unforeseen data received\n");
-                    change_state(WAIT_RATE_CHANGE);
-                    lws_cancel_service(context);
-                    lws_close_reason(wsi, LWS_CLOSE_STATUS_NORMAL, NULL, 0);
-		    // Re-enable catching of SIGHUP signal
-		    signal_control(ENABLE); 
-                    return (-1);
-            }
-
-            break;
-        case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
-            // Connection ended with error.
-            writelog(ERR, "Callback: Connection to server %s on port %d failed.\n", server_address, server_port);
-	    change_state(WAIT_RATE_CHANGE);
+	case LWS_CALLBACK_SERVER_NEW_CLIENT_INSTANTIATED:
+	    // A new client websocket instance was created 
+            writelog(NOTICE, "%20s: Callback: A new client websocket instance was created\n", decode_state(state));
 	    break;
+
+        case LWS_CALLBACK_CLIENT_ESTABLISHED:
+	    // Connection with server established
+            writelog(NOTICE, "%20s: Callback: Connected to websocket server %s:%d\n", decode_state(state), server_address, server_port);
+
+	    // Trigger a transition of the finite-state machine
+	    ret = fsm_transit(CONNECT);
+            break;
+
+        case LWS_CALLBACK_CLIENT_WRITEABLE:
+	    // Server can accept commands
+            writelog(NOTICE, "%20s: Callback: Server can accept commands\n", decode_state(state));
+
+	    // Trigger a transition of the finite-state machine
+	    ret = fsm_transit(WRITEABLE);
+            break;
+	
+        case LWS_CALLBACK_CLIENT_RECEIVE:
+	    // Data received from server
+	    strcpy(command + LWS_PRE, (char *)in);
+            writelog(USER, "%20s: Response: %.*s\n", decode_state(state), CUTLEN, (char *)in);
+
+	    // Trigger a transition of the finite-state machine
+	    ret = fsm_transit(check_received_data((char *)in));
+            break;
+
+	case LWS_CALLBACK_CLIENT_RECEIVE_PONG:
+	    writelog(NOTICE, "%20s: Callback: Pong received from server\n", decode_state(state));
+	    break;
+
         case LWS_CALLBACK_CLIENT_CLOSED:
             // Connection closed by client.
-            writelog(NOTICE, "Callback: LWS_CALLBACK_CLIENT_CLOSED\n");
-	    break;
-        case LWS_CALLBACK_CLOSED:
-            writelog(WARN, "Callback: LWS_CALLBACK_CLOSED\n");
-            // Connection closed by server.
-            // A new connection is requested and the config update process is restarted.
-	    // TO BE MANAGED AND TESTED IN FUTURE VERSION.
-            // change_state(RECONNECTION_REQUEST);
-	    change_state(WAIT_RATE_CHANGE);
+            writelog(NOTICE, "%20s: Callback: Disconnected from websocket server %s:%d\n", decode_state(state), server_address, server_port);
+
+	    // Trigger a transition of the finite-state machine
+	    ret = fsm_transit(DISCONNECT);
             break;
+	    
+	case LWS_CALLBACK_CLOSED:
+            // Connection closed by server.
+            writelog(WARN, "%20s: Callback: Websocket server %s:%d triggered disconnection\n", decode_state(state), server_address, server_port);
+
+	    // Trigger a transition of the finite-state machine
+	    ret = fsm_transit(DISCONNECT);
+            break;
+
+        case LWS_CALLBACK_WSI_DESTROY:
+            // Websocket instance was destroyed after connection closing
+            writelog(NOTICE, "%20s: Callback: Websocket instance destroyed\n", decode_state(state));
+            break;
+
+        case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
+            // Connection ended with error
+            writelog(ERR, "%20s: Callback: Connection to %s:%d failed: %s\n", decode_state(state), server_address, server_port, (char *)in);
+
+	    // Trigger a transition of the finite-state machine
+	    ret = fsm_transit(DISCONNECT);
+            break;
+
         default:
-            writelog(NOTICE, "Unmanaged Callback. Reason = %d\n", reason);
+            writelog(NOTICE, "%20s: Callback: Unhandled callback: reason %d\n", decode_state(state), reason);
             break;
     }
 
-    // Re-enable catching of SIGHUP signal
+    // Re-enable catching of signals
     signal_control(ENABLE);
 
-    return 0;
+    // Return the value returned by the finite-state machine
+    return(ret);
 }
 
 
-/////////////////////////////////////////////
-// Attempt connection to websocket server
-/////////////////////////////////////////////
-int connection_request()
+//////////////////////////////////////////////
+//////////////////////////////////////////////
+//// Actions of the finite-state machine  ////
+//////////////////////////////////////////////
+//////////////////////////////////////////////
+
+//////////////////////////////////////////////
+// Send request for callback when the server
+// can accept commands
+//////////////////////////////////////////////
+int callback_on_writeable(void)
 {
-    int count;
+    lws_callback_on_writable(websocket);
 
-    for (count = 0; count < MAX_CONNECT; count++)
+    return(SUCCESS);
+}
+
+
+//////////////////////////////////////////////
+// Send "GetConfig" command
+//////////////////////////////////////////////
+int send_get_config(void)
+{
+    strcpy(command + LWS_PRE, "\"GetConfig\"");
+    writelog(USER, "%20s: Command : %s\n", decode_state(state), command + LWS_PRE);
+
+    // Send the command to websocket server
+    lws_write(websocket, command + LWS_PRE, strlen(command + LWS_PRE), LWS_WRITE_TEXT);
+
+    return(SUCCESS);
+}
+
+
+//////////////////////////////////////////////
+// Send "GetPreviousConfig" command
+//////////////////////////////////////////////
+int send_get_previous_config(void)
+{
+    strcpy(command + LWS_PRE, "\"GetPreviousConfig\"");
+    writelog(USER, "%20s: Command : %s\n", decode_state(state), command + LWS_PRE);
+
+    // Send the command to websocket server
+    lws_write(websocket, command + LWS_PRE, strlen(command + LWS_PRE), LWS_WRITE_TEXT);
+
+    return(SUCCESS);
+}
+
+
+//////////////////////////////////////////////
+// Send "SetConfig" command
+//////////////////////////////////////////////
+int send_set_config(void)
+{
+    int ret;
+
+    ret = prepare_setconfig_command(command + LWS_PRE, rate);
+
+    if (ret == SUCCESS)
     {
-        websocket = lws_client_connect_via_info(&connect_info);
+	writelog(USER, "%20s: Command : %.*s\n", decode_state(state), CUTLEN, command + LWS_PRE);
 
-        if (websocket)
-            return(SUCCESS);
-        else
-            sleep(0.1);
+	// Send the command to websocket server
+	lws_write(websocket, command + LWS_PRE, strlen(command + LWS_PRE), LWS_WRITE_TEXT);
+    }
+    else
+    {
+	writelog(ERR, "%20s: Error in the preparation of the command SetConfig. ret=%d\n", decode_state(state), ret);
+	exit(FAIL);
     }
 
-    return(FAIL);
+    return(SUCCESS);
 }
 
 
-/////////////////////////////////////////////
-// Change global state 
-/////////////////////////////////////////////
-void change_state(enum states newstate)
+//////////////////////////////////////////////
+// Schedule a new connection 
+// to the websocket server
+//////////////////////////////////////////////
+int reconnection_request(void)
 {
-    char str_newstate[40];
+    writelog(NOTICE, "%20s: Reconnection attempt...\n", decode_state(state));
 
-    strcpy(str_newstate, decode_state(newstate));
+    // Schedule a new connection to websocket server
+    lws_sul_schedule(context, 0, &sul, connection_request, RECONN_INTERVAL);
 
-    writelog(NOTICE, "State changed to %s\n", str_newstate);
-
-    state = newstate;
-
-
-    return;
+    return(SUCCESS);
 }
 
 
-/////////////////////////////////////////////
-// Write log messages to stderr or syslog 
-// depending on the --syslog option
-/////////////////////////////////////////////
-void writelog(int level, char *format, ...)
-{
-    static char buff[BUFLEN + 30];
-    va_list args;
-
-    sprintf(buff, "%s: ", decode_state(state));
-    va_start(args, format);
-    vsprintf(buff + strlen(buff), format, args);
-    buff[CUTLEN - 2] = '\n';
-    buff[CUTLEN - 1] = '\0';
-    va_end(args);
-
-    _lws_log(level, buff);
-}

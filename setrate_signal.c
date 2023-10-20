@@ -1,4 +1,5 @@
 ////////////////////////////////////////////////////
+//
 // camilladsp-setrate
 // Automatic sample rate switcher for CamillaDSP
 //
@@ -7,16 +8,11 @@
 //
 ////////////////////////////////////////////////////
 
-#include <string.h>
 #include <signal.h>
 #include <libwebsockets.h>
-#include <errno.h>
 #include "setrate.h"
 
-extern struct lws_context *context;    // Global context
-extern enum states state;
-
-int dacready_signal = SIGHUP;          // Signal used to notify USB DAC avilability
+extern states state;		    // Global state
 
 
 ///////////////////////////////////////
@@ -24,43 +20,27 @@ int dacready_signal = SIGHUP;          // Signal used to notify USB DAC avilabil
 ///////////////////////////////////////
 void signal_control(int enable)
 {
-    void *err;
-    
     if (enable)
-	signal(dacready_signal, signal_handler);
+	signal(SOUNDCARD_UP_SIG, soundcard_up_handler);
     else
-	signal(dacready_signal, NULL);
-
-    if (err == SIG_ERR)
-    {
-	writelog(ERR, "Cannot catch signal: %s\n", strerror(errno));
-	exit(FAIL);
-    }
+	signal(SOUNDCARD_UP_SIG, SIG_IGN);
 }
 
 
 ///////////////////////////////////////
-// Handle incoming signal
+// Handle incoming signal notifying
+// availability of the playback device
 ///////////////////////////////////////
-void signal_handler(int sig)
+void soundcard_up_handler(int sig)
 {
-    static int err;
+    writelog(USER, "%20s: Playback device is up\n", decode_state(state));
 
-    // Cancel websocket servicing 
-    lws_cancel_service(context);
+    // Delay to give CamillaDSP time to access
+    // the just appeared playback device
+    sleep(1);
 
-    writelog(USER, "DAC availability signalled\n");
-
-    // Close alsa control to force exit
-    // from waiting for an alsa event,
-    // thus allowing reload of a valid config.
-    alsa_close();
-
-    writelog(NOTICE, "Alsa control closed.\n");
-
-    // Require websocket servicing again 
-    lws_service(context, 0);
-
+    // Trigger a transition of the finite-state machine
+    // as if a sample rate change had occurred
+    fsm_transit(RATE_CHANGE);
 }
-
 
