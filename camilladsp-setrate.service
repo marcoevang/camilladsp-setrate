@@ -3,12 +3,13 @@ Description=Automatic Sample Rate Changer Daemon for CamillaDSP
 After=camilladsp.service 
 
 [Service]
-ExecStart=/usr/local/bin/camilladsp-setrate --err --warn --user --syslog
-Restart=no
+ExecStartPre=sleep 0.5
+ExecStart=/usr/local/bin/camilladsp-setrate --loglevel=err --syslog
+Restart=always
 RestartSec=1
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=set_samplerate
+SyslogIdentifier=camilladsp-setrate
 CPUSchedulingPolicy=fifo
 CPUSchedulingPriority=10
 User=dietpi
