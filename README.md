@@ -28,41 +28,58 @@ This project was developed on DietPi 64-bit. It should also work on other Debian
 
 ## Building
 
-1. Clone the git repository and move to the home of the project:
-```
-git clone https://github.com/marcoevang/camilladsp-setrate
-cd camilladsp-setrate
-```
-2. Install *git*, the C development environment and the required libraries:
+1. Install *git*, the C development environment and the required libraries:
 
 ```
 sudo apt update  
 sudo apt install git build-essential libasound2-dev libwebsockets-dev
 ```
 
+2. Clone the git repository and move to the home of the project:
+```
+git clone https://github.com/marcoevang/camilladsp-setrate
+cd camilladsp-setrate
+```
 3. Build the executable file:
 
 ```
 make
 ```
+Instructions for installing the required packages are valid on debian-based Linux distributions. On other Linux flavors (e.g. Fedora) the package manager might differ, and the name of the libraries might also differ slightly.   
+
+If you use this tool on a Raspberry Pi 4 64-bit OS, you can probably directly use the ***camilladsp-setrate*** executable file provided under the *bin* folder of this repository. In that case, skip steps 1. and 3., complete the Install phase and then check if the provided executable file works.  
+
 ## Installing
 
-1. Copy the executable file to `/usr/local/bin`
+1. Copy the executable file to `/usr/local/bin`:
 
 ```
 make install
 ```
 If the executable file is already running, stop it before issuing *make install*.
 
-2. Edit the file `camilladsp-setrate.service` and replace the values of the parameters _User_ and _Group_ with yours. You might also want to change the options on the command line of the _ExecStart_ parameter (see below for a description of command options and flags).
+2. Edit the file `camilladsp-setrate.service` and replace the values of the parameters _User_ and _Group_ with yours. You might want to make other changes, e.g. the options on the command line of the _ExecStart_ parameter (see below for a description of command options and flags).
 
-3. Copy the file `camilladsp-setrate.service` to the system services folder and enable that service
+3. Copy the file `camilladsp-setrate.service` to the system services folder and enable that service:
 
 ```
 sudo cp camilladsp-setrate.service /etc/systemd/system
 sudo systemctl enable camilladsp-setrate
 ```
-4. Edit the file `85-DAC.rules` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your USB DAC.
+4. Make sure the user that runs the service (e.g. dietpi in the example .service file) is a member of the *audio* group, otherwise the started process cannot access the audio devices. If it is not, add it to the *audio* group:
+
+```
+sudo usermod -a <user running the camilladsp-setrate service> -G audio
+```
+
+   Example:
+
+```
+sudo usermod -a dietpi -G audio
+```
+
+
+5. Edit the file `85-DAC.rules` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your USB DAC.
    You can obtain those values with the following command :
 
 ```
@@ -70,12 +87,12 @@ usb-devices
 ```
 (_Vendor_ corresponds to `ID_VENDOR_ID` and _ProdID_ corresponds to `ID_MODEL_ID`)  
 
-5. Copy the file `85-DAC.rules` to the `udev` rules folder
+6. Copy the file `85-DAC.rules` to the `udev` rules folder:
 
 ```
 sudo cp 85-DAC.rules /etc/udev/rules.d
 ```
-6. Reboot the system
+7. Reboot the system:
 
 ```
 sudo shutdown -r now
@@ -105,6 +122,12 @@ OPTIONS:
 - `-p, --port <port>`                             Set server IP port [default: 1234]
 - `-l, --loglevel <log level>`          Set log level - Override flags [values: err, warn, user, notice]
 
+If the *--capture* flag is omitted, this tool updates the *samplerate* and *chunksize* parameters of *CamillaDSP* configuration. If that flag is used, the *capture_samplerate* parameter is updated instead and *chunksize* is left unchanged. This flag should be used if *CamillaDSP* is configured for resampling the captured audio to a fixed playback rate.  
+
+If the `--device` option is used, the name of the capture device shall be given in the format required by the`arecord`command. 
+
+The `--err`, `--warn`, `--user` and `--notice` flags independently enable each type of log message. The `--loglevel` option overrides the settings of those flags, therefore if you use this option, you should not use the flags.
+
 ***camilladsp-setrate*** should start as a service at boot time. To this end, the `camilladsp-setrate.service` file is provided. You can edit that file to set the desired options.  
 After modifications to the service file you have to make the `udev` daemon reload the rules:
 
@@ -117,18 +140,13 @@ or reboot the system.
 I strongly recommend not running ***camilladsp-setrate*** as *super-user*.
 
 ## Final notes
+- This tool is useful if the audio player and *CamillaDSP* run on distinct computers. In case they run on the same computer, I recommend using the [alsa_cdsp](https://github.com/scripple/alsa_cdsp) plugin instead to get automatic samplerate switching (follow the link to the github page).
 - In this version the sample rate change process is driven by a finite-state machine whose diagram is provided under the *doc* folder.  You can find tons of information about this technique on the Internet, just search for "finite-state machine".  
-- Instructions for installing the required packages are valid on debian-based Linux distributions. On other Linux flavors (e.g. Fedora) the package manager might differ, and the name of the libraries might also differ slightly.   
-
-
-- If you use this tool on a Raspberry Pi 4 64-bit OS, you can probably directly use the ***camilladsp-setrate*** executable file provided under the *bin* folder of this repository. If this is the case, skip steps 2. and 3. of the Build phase, go directly to the Install phase and then check if the provided executable file works.  
 
 
 - If your _CamillaDSP_ configuration is big, you may need to increase the size of the message buffer by updating the `BUFLEN` value in the `setrate.h` file.
-- If the *--capture* flag is omitted, this tool updates the *samplerate* and *chunksize* parameters of *CamillaDSP* configuration. If that flag is used, the *capture_samplerate* parameter is updated instead and *chunksize* is left unchanged. This flag should be used if *CamillaDSP* is configured for resampling the captured audio to a fixed playback rate.  
 
 
-- The name of the capture device is given in the format required by the`arecord`command. 
-- ***camilladsp-setrate*** also works with alpha releases of CamillaDSP v2.
+- ***camilladsp-setrate***  works with all released versions of CamillaDSP.
 - Comments in the source code will, hopefully, help to understand the what and the how.  
 
