@@ -148,5 +148,7 @@ I strongly recommend not running ***camilladsp-setrate*** as *super-user*.
 
 
 - ***camilladsp-setrate***  works with all released versions of CamillaDSP.
+- If the `--capture` flag is omitted, ***camilladsp-setrate*** dynamically replaces the value of the *samplerate* parameter set in the configuration file. If the value of the *capture_samplerate* parameter is also assigned in that file, if that value is different from the value of the audio stream being captured, and if resampling is not enabled, *CamillaDSP* detects a contradiction and reports a configuration error. Therefore, the value of the *capture_samplerate* parameter should not be set.
+  If, on the other hand, the `--capture` flag is used, ***camilladsp-setrate*** dynamically replaces the value of the *capture_samplerate* parameter, leaving the *samplerate* parameter unaffected. This is useful to achieve resampling at a fixed rate determined by the *samplerate* parameter. In this case, both the *capture_samplerate* and *samplerate* parameters must be specified and resampling must be enabled.
 - Comments in the source code will, hopefully, help to understand the what and the how.  
 
