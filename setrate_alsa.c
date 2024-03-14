@@ -120,7 +120,7 @@ void alsa_init()
         exit(FAIL);
     }
 
-    writelog(NOTICE, "Alsa control for the device %s initialised\n", device_name);
+    writelog(NOTICE, "%20s: Alsa control for the device %s initialised\n", decode_state(state), device_name);
 
     return;
 }

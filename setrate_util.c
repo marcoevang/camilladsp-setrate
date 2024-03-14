@@ -13,6 +13,8 @@
 #include "setrate.h"
 
 extern int capture;
+extern int upsampling;
+extern int upsampling_factor;
 
 
 /////////////////////////////////////////////////////////////
@@ -56,13 +58,15 @@ events check_received_data(char *received_data)
 // Prepare the SetConfig command to be 
 // issued to websocket server
 ///////////////////////////////////////
-int prepare_setconfig_command(char *orig, int samplerate) 
+int prepare_setconfig_command(char *orig, int rate) 
 {
     char *p1;      // points to the start of the config 
-    char *p2;      // points to the start of the samplerate or capture_samplerate tag
+    char *p2;      // points to the start of the samplerate tag
     char *p3;      // points to the rest of the config after the samplerate value
     char *p4;      // points to the start of the chunksize tag
     char *p5;      // points to the rest of the config after the  changes
+    char *p6;      // points to the start of the capture_samplerate tag
+    char *p7;      // points to the rest of the config after the capture_samplerate value
     char *tmpbuf;  // temporary buffer
     int len_tag_samplerate;   // length of the samplerate tag to search for
     int len_tag_chunksize;   // length of the chunksize tag to search for
@@ -71,16 +75,19 @@ int prepare_setconfig_command(char *orig, int samplerate)
     static char tag_samplerate[] = "samplerate:";
     static char tag_chunksize[]  = "chunksize:";
     static char tag_capture_samplerate[] = "capture_samplerate:";
+    int samplerate;
     char str_samplerate[8];
+    int capture_samplerate;
+    char str_capture_samplerate[8];
     char str_chunksize[8];
+    int samplerate_updated = FALSE;
+    int capture_samplerate_updated = FALSE;
     int len;
     int n;
 
     // sanity check
-    if (!orig || samplerate <= 0)
+    if (!orig || rate <= 0)
         return(FAIL);
-
-    sprintf(str_samplerate, "%d", samplerate);
 
     tmpbuf = malloc(BUFLEN);
 
@@ -94,10 +101,17 @@ int prepare_setconfig_command(char *orig, int samplerate)
     if (!p1)
         return(FAIL);
 
-    if (!capture)
+    // If the --capture flag was not used,
+    // or --upsampling option is used,
+    // both samplerate and chunksize parameters are updated
+    if (!capture || upsampling)
     {
-	// the --capture flag was not used:
-	// samplerate and chunksize parameters will be updated
+	// If the --upsampling option is used,
+	// the samplerate is multiplied by the upsampling factor
+	if (upsampling)
+	    samplerate = rate * upsampling_factor;
+	else
+	    samplerate = rate;
 
 	if (samplerate <= 48000)
 	    chunksize = 1024;
@@ -107,7 +121,6 @@ int prepare_setconfig_command(char *orig, int samplerate)
 	    chunksize = 4092;
 
 	sprintf(str_chunksize, "%d", chunksize);
-
 	len_tag_samplerate         = strlen(tag_samplerate);
 	len_tag_chunksize          = strlen(tag_chunksize);
 
@@ -132,48 +145,62 @@ int prepare_setconfig_command(char *orig, int samplerate)
 	    return(FAIL);
 
 	n = p2 - p1 + len_tag_samplerate + 1;
-
 	strncat(tmpbuf, p1, n);
+
+	sprintf(str_samplerate, "%d", samplerate);
 	strcat(tmpbuf, str_samplerate);
 
 	n = p4 - p3 + len_tag_chunksize + 1;
 
 	strncat(tmpbuf, p3, n);
 	strcat(tmpbuf, str_chunksize);
-	strcat(tmpbuf, p5);
 
-	len = strlen(tmpbuf);
-	tmpbuf[len - 1] = '\0';
+	samplerate_updated = TRUE;
     }
-    else
+
+    // If the --capture flag is used,
+    // or the --upsampling options is used,
+    // the capture_samplerate is updated.
+    if (capture || upsampling)
     {
-	// the --capture flag was used:
-	// capture_samplerate parameter only will be updated
+	capture_samplerate = rate;
 
 	len_tag_capture_samplerate = strlen(tag_capture_samplerate);
 
-	p2 = strstr(orig, tag_capture_samplerate);
+	p6 = strstr(orig, tag_capture_samplerate);
 
-	if (!p2)
+	if (!p6)
 	    return(FAIL);
 
-	p3 = strchr(p2, '\\');
+	if (samplerate_updated)
+	{
+	    n = p6 - p5 + len_tag_capture_samplerate + 1;
+	    strncat(tmpbuf, p5, n);
+	}
+	else
+	{
+	    n = p6 - p1 + len_tag_capture_samplerate + 1;
+	    strncat(tmpbuf, p1, n);
+	}
 
-	if (!p3)
+	p7 = strchr(p6, '\\');
+
+	if (!p7)
 	    return(FAIL);
 
-	n = p2 - p1 + len_tag_capture_samplerate + 1;
+	sprintf(str_capture_samplerate, "%d", capture_samplerate);
+	strcat(tmpbuf, str_capture_samplerate);
 
-	strncat(tmpbuf, p1, n);
-	strcat(tmpbuf, str_samplerate);
-
-	strcat(tmpbuf, p3);
-
-	len = strlen(tmpbuf);
-	tmpbuf[len - 1] = '\0';
-
+	capture_samplerate_updated = TRUE;
     }
 
+    if (capture_samplerate_updated)
+	strcat(tmpbuf, p7);
+    else
+	strcat(tmpbuf, p5);
+
+    len = strlen(tmpbuf);
+    tmpbuf[len - 1] = '\0';
     strcpy(orig, tmpbuf);
 
     free(tmpbuf);

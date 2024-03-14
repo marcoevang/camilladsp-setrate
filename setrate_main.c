@@ -18,16 +18,13 @@ extern int    server_port;	    // Server IP port
 extern char   server_address[];	    // Server IP address
 extern states state;		    // Global state
 
+int upsampling_factor;		    // Upsampling factor
 int rate;			    // Sample rate
 
 char level[10];
 int  logmask;
 
 // Command line options
-static int logerr    = 0;
-static int logwarn   = 0;
-static int loguser   = 0;
-static int lognotice = 0;
 static int timestamp = FALSE;
 static int syslog    = FALSE;
 static int device    = FALSE;
@@ -35,14 +32,11 @@ static int address   = FALSE;
 static int port      = FALSE;
 static int loglevel  = FALSE;
 
-int capture	     = FALSE;
+int upsampling	= FALSE;
+int capture	= FALSE;
 
 static struct option long_options[] =
 {
-    {"err",       no_argument,       &logerr,    LLL_ERR},
-    {"warn",      no_argument,       &logwarn,   LLL_WARN},
-    {"user",      no_argument,       &loguser,   LLL_USER},
-    {"notice",    no_argument,       &lognotice, LLL_NOTICE},
     {"timestamp", no_argument,       &timestamp, TRUE},
     {"syslog",    no_argument,       &syslog,    TRUE},
     {"capture",   no_argument,       &capture,   TRUE},
@@ -52,10 +46,9 @@ static struct option long_options[] =
     {"loglevel",  required_argument, &loglevel,  TRUE},
     {"help",      no_argument,       NULL,       0},
     {"version",   no_argument,       NULL,       0},
+    {"upsampling",required_argument, &upsampling,TRUE},
     {0,           0,                 0,          0}
 };
-
-
 
 /////////////////////////////////////////////
 // MAIN PROGRAM
@@ -85,7 +78,7 @@ int main(int argc, char* argv[])
 	    print_usage(argv[0]);
 	    exit(FAIL);
         }
-
+	
 	if (!strcmp(long_options[option_index].name, "help"))
 	{
 	    print_usage(argv[0]);
@@ -104,6 +97,26 @@ int main(int argc, char* argv[])
 	    server_port = atoi(optarg);
 	else if (!strcmp(long_options[option_index].name, "loglevel"))
 	    strcpy(level, optarg);
+	else if (!strcmp(long_options[option_index].name, "upsampling"))
+	{
+	    upsampling_factor = atoi(optarg);
+
+	    if (upsampling_factor <= 0)
+	    {
+		printf("\nError: invalid option %s\n", argv[optind-1]);
+		printf("       upsampling factor must be a positive integer\n\n");
+		print_usage(argv[0]);
+		exit(FAIL);
+	    }
+	}
+    }
+
+    // --capture and --upsampling cannot be used at the same time
+    if (capture && upsampling)
+    {
+	printf("\nError: --capture and --upsampling cannot be used at the same time\n");
+	print_usage(argv[0]);
+	exit(FAIL);
     }
 
     // Device name defaults to hw:UAC2Gadget
@@ -119,7 +132,11 @@ int main(int argc, char* argv[])
 	server_port = 1234;
 
     // Set the log level mask
+    // ERR is the default
     if (loglevel)
+    {
+	if (!strcmp(level, "off"))
+	    logmask = 0;
 	if (!strcmp(level, "err"))
 	    logmask = ERR;
 	else if (!strcmp(level, "warn"))
@@ -134,8 +151,9 @@ int main(int argc, char* argv[])
 	    print_usage(argv[0]);
 	    exit(FAIL);
 	}
+    }
     else
-	logmask = logerr | logwarn | loguser | lognotice;
+	logmask = ERR;
 
     // Set libwebsockets log level
     if (syslog)
@@ -180,22 +198,17 @@ void print_usage(char *cmd)
     printf("An automatic sample rate switcher for CamillaDSP\n");
     printf("\nUSAGE:\n    %s [FLAGS] [OPTIONS]\n", cmd);
     printf("\nFLAGS:\n");
-    printf("    -c, --capture                   Update capture_samplerate instead of samplerate\n");
-    printf("    -e, --err                       Enable logging of errors\n");
-    printf("    -w, --warn                      Enable logging of warnings\n");
-    printf("    -u, --user                      Enable logging of key events\n");
-    printf("    -n, --notice                    Enable logging of internal events\n");
-    printf("    -t, --timestamp                 Prepend timestamp to log messages\n");
-    printf("    -s, --syslog                    Redirect logging to syslog [if omitted, logging emits to stderr]\n");
-    printf("    -v, --version                   Print software version\n");
-    printf("    -h, --help                      Print this help\n");
+    printf("    -c, --capture			Update capture_samplerate instead of samplerate\n");
+    printf("    -t, --timestamp			Prepend timestamp to log messages\n");
+    printf("    -s, --syslog			Redirect logging to syslog [if omitted, logging emits to stderr]\n");
+    printf("    -v, --version			Print software version\n");
+    printf("    -h, --help  			Print this help\n");
     printf("\nOPTIONS:\n");
-    printf("    -d, --device=<capture device>   Set alsa capture device name [default: hw:UAC2Gadget]\n");
-    printf("    -a, --address=<address>         Set server IP address [default: localhost]\n");
-    printf("    -p, --port=<port>               Set server IP port [default: 1234]\n");
-    printf("    -l, --loglevel=<log level>      Set log level - Override flags [values: err, warn, user, notice]\n");
+    printf("    -d, --device=<capture device>	Set alsa capture device name [default: hw:UAC2Gadget]\n");
+    printf("    -a, --address=<address>		Set server IP address [default: localhost]\n");
+    printf("    -p, --port=<port>   		Set server IP port [default: 1234]\n");
+    printf("    -u, --upsampling=<factor>   	Set upsampling factor [default: 1]\n");
+    printf("    -l, --loglevel=<log level>  	Set log level [values: err, warn, user, notice, off. Default: err]\n");
     printf("\n");
 }
-
-
 

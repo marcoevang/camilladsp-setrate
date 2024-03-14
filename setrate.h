@@ -22,7 +22,7 @@
 #define MAX_DEVICE_NAME     40	    // Maximum lenght of alsa device name
 #define MAX_ADDRESS_LEN     80	    // Maximum lenght of  websocket server IP address
 
-#define VERSION     "2.0.0"	    // Version number 
+#define VERSION     "2.1.0"	    // Version number 
 
 #define ERR         LLL_ERR
 #define WARN        LLL_WARN
