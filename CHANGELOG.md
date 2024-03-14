@@ -4,7 +4,7 @@
 
 ### Added
 
-- The *--upsampling* command option has been added to allow upsampling of the captured audio at a fixed rate. For example, this flag can be used to instruct CamillaDSP to perform 2X or 4X oversampling regardless of the sample rate of the incoming audio.
+- The *--upsampling* command option has been added to allow upsampling of the captured audio by a fixed integer factor. For example, this flag can be used to instruct CamillaDSP to perform 2X or 4X oversampling regardless of the sample rate of the incoming audio.
 
 ### Changed
 
