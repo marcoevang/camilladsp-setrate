@@ -1,5 +1,13 @@
 # CHANGE LOG
 
+### [2.1.1] - 2024-03-24
+
+### Fixed
+
+- [setrate_lws.c] Fixed a bug causing occasional early disconnection from the websocket server.
+
+   
+
 ### [2.1.0] - 2024-03-14
 
 ### Added

@@ -58,7 +58,7 @@ events check_received_data(char *received_data)
 // Prepare the SetConfig command to be 
 // issued to websocket server
 ///////////////////////////////////////
-int prepare_setconfig_command(char *orig, int rate) 
+int prepare_setconfig(char *orig, int rate) 
 {
     char *p1;      // points to the start of the config 
     char *p2;      // points to the start of the samplerate tag
@@ -76,10 +76,10 @@ int prepare_setconfig_command(char *orig, int rate)
     static char tag_chunksize[]  = "chunksize:";
     static char tag_capture_samplerate[] = "capture_samplerate:";
     int samplerate;
-    char str_samplerate[8];
+    char str_samplerate[12];
     int capture_samplerate;
-    char str_capture_samplerate[8];
-    char str_chunksize[8];
+    char str_capture_samplerate[12];
+    char str_chunksize[12];
     int samplerate_updated = FALSE;
     int capture_samplerate_updated = FALSE;
     int len;

@@ -15,14 +15,14 @@
 #define DISABLE     0
 #define ENABLE      1
 #define BUFLEN  32768		    // Max size of websocket receive buffer
-#define CUTLEN    130		    // Size of a truncated string
+#define CUTLEN    80		    // Size of a truncated string
 
 #define RECONN_INTERVAL    3*LWS_USEC_PER_SEC	// Interval between reconnection attempts
 
 #define MAX_DEVICE_NAME     40	    // Maximum lenght of alsa device name
 #define MAX_ADDRESS_LEN     80	    // Maximum lenght of  websocket server IP address
 
-#define VERSION     "2.1.0"	    // Version number 
+#define VERSION     "2.1.1"	    // Version number 
 
 #define ERR         LLL_ERR
 #define WARN        LLL_WARN
@@ -72,21 +72,21 @@ typedef enum
 #define SOUNDCARD_UP_SIG  SIGHUP    // Signal used to notify playback sound card availability 
 
 
-void alsa_init(void);			        // Initialise alsa control
-void websocket_init(void);			// Initialise websocket environment
-events  check_received_data(char *);		// Check if the received configuration is valid
-void fsm_init(void);				// Initialise the finite-state machine
-int  fsm_transit(events);			// Trigger a transition of the finite-state machine
-int  notify_success(void);			// Notify configuration update success
-int  notify_failure(void);			// Notify configuration update failure
-int  reconnection_request(void);		// Schedule a reconnection to the websocket server
-int  callback_on_writeable(void);               // Request a callback when the server can accept commands 
-int  send_get_config(void);                     // Send "GetConfig" command
-int  send_get_previous_config(void);            // Send "GetPreviousConfig" command
-int  send_set_config(void);			// Send "SetConfig" command
-void signal_control(int);			// Enable/disable signal catching
-void soundcard_up_handler(int);			// Signal handler (Playback device availability)
-int  prepare_setconfig_command(char *, int);	// Prepare the SetConfig command
+void alsa_init(void);		        // Initialise alsa control
+void websocket_init(void);		// Initialise websocket environment
+events  check_received_data(char *);	// Check if the received configuration is valid
+void fsm_init(void);			// Initialise the finite-state machine
+int  fsm_transit(events);		// Trigger a transition of the finite-state machine
+int  notify_success(void);		// Notify configuration update success
+int  notify_failure(void);		// Notify configuration update failure
+int  reconnection_request(void);	// Schedule a reconnection to the websocket server
+int  callback_on_writeable(void);       // Request a callback when the server can accept commands 
+int  send_get_config(void);             // Send "GetConfig" command
+int  send_get_previous_config(void);    // Send "GetPreviousConfig" command
+int  send_set_config(void);		// Send "SetConfig" command
+void signal_control(int);		// Enable/disable signal catching
+void soundcard_up_handler(int);		// Signal handler (Playback device availability)
+int  prepare_setconfig(char *, int);	// Prepare the SetConfig command
 char *decode_state(states);      		// Return a description of the state
 char *decode_event(events);      		// Return a description of the event
 char *decode_action(int (*)());      		// Return a description of the callabck function

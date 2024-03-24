@@ -14,7 +14,6 @@
 #include "setrate.h"
 
 
-
 // A cell of the transition table
 typedef struct 
 {
@@ -27,6 +26,8 @@ static cell transition_table[LAST_STATE + 1][LAST_EVENT + 1];
 
 states state;	// Global state
 
+int fsm_ret;	// Value returned after a transition
+		// of the Finite-State Machine
 
 ////////////////////////////////////////////////////////////
 // Initialise the finite-state machine by assigning
@@ -100,7 +101,7 @@ void fsm_init()
     transition_table[WAIT_RESPONSE][DISCONNECT].action		 = reconnection_request;
     transition_table[WAIT_RESPONSE][DISCONNECT].next_state	 = START;
 
-    writelog(NOTICE, "Finite-state machine initialised\n");
+    writelog(NOTICE, "%-20s %-20s Finite-state machine initialised\n", __func__, decode_state(state));
 
     // Set the initial state
     state = START;
@@ -134,24 +135,26 @@ int fsm_transit(events event)
     // Pick next state in the transition table
     next_state = transition_table[state][event].next_state;
 
+    // Pick action function in the transition table
+    action = transition_table[state][event].action;
+
     // If next state is INIT there is nothing to be done
     if (next_state == INIT)
 	return(SUCCESS);
     
-    // Pick action function in the transition table
-    action = transition_table[state][event].action;
+    writelog(NOTICE, "%-20s %-20s Event   : %s\n", __func__, decode_state(state), decode_event(event));
+    writelog(NOTICE, "%-20s %-20s Action  : %s\n", __func__, decode_state(state), decode_action(action));
+    writelog(NOTICE, "%-20s %-20s State   : %s\n", __func__, decode_state(state), decode_state(next_state));
 
-    writelog(NOTICE, "%20s: Event   : %s\n", decode_state(state), decode_event(event));
-    writelog(NOTICE, "%20s: Action  : %s\n", decode_state(state), decode_action(action));
-    writelog(NOTICE, "%20s: State   : %s\n", decode_state(state), decode_state(next_state));
+    // Update the current state
+    state = next_state;
 
     // Carry out the action, if any
     if (action)
 	ret = action();
+    else
+	ret = SUCCESS;
     
-    // Update the current state
-    state = next_state;
-
     return(ret);
 }
 
@@ -168,7 +171,7 @@ int fsm_transit(events event)
 //////////////////////////////////////////////
 int notify_success(void)
 {
-    writelog(USER, "%20s: END     : Configuration update success\n", decode_state(state));
+    writelog(USER, "%-20s %-20s END     : Configuration update success\n", __func__, decode_state(state));
 
     return(SUCCESS);
 }
@@ -179,7 +182,7 @@ int notify_success(void)
 //////////////////////////////////////////////
 int notify_failure(void)
 {
-    writelog(WARN, "%20s: END     : Configuration update abort\n", decode_state(state));
+    writelog(WARN, "%-20s%-20s END     : Configuration update abort\n", __func__, decode_state(state));
 
     return(SUCCESS);
 }

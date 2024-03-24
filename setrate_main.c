@@ -9,6 +9,7 @@
 ////////////////////////////////////////////////////
 
 #include <libwebsockets.h>
+#include <libgen.h>
 #include <getopt.h>
 #include "setrate.h"
 
@@ -104,7 +105,7 @@ int main(int argc, char* argv[])
 	    if (upsampling_factor <= 0)
 	    {
 		printf("\nError: invalid option %s\n", argv[optind-1]);
-		printf("       upsampling factor must be a positive integer\n\n");
+		printf("       upsampling factor must be positive\n\n");
 		print_usage(argv[0]);
 		exit(FAIL);
 	    }
@@ -161,8 +162,10 @@ int main(int argc, char* argv[])
     else
 	lws_set_log_level(logmask, timestamp ? NULL : lwsl_emit_stderr_notimestamp);
 
-    writelog(NOTICE, "%s %s\n", argv[0], VERSION);
-    writelog(NOTICE, "An automatic sample rate switcher for CamillaDSP\n");
+    writelog(NOTICE, "%-20s %-20s ================================================\n", __func__, decode_state(state));
+    writelog(NOTICE, "%-20s %-20s %s v%s\n", __func__, decode_state(state), basename(argv[0]), VERSION);
+    writelog(NOTICE, "%-20s %-20s An automatic sample rate switcher for CamillaDSP\n", __func__, decode_state(state));
+    writelog(NOTICE, "%-20s %-20s ================================================\n", __func__, decode_state(state));
 
     // Initialise the finite-state machine
     fsm_init();
@@ -194,9 +197,9 @@ int main(int argc, char* argv[])
 /////////////////////////////////////////////
 void print_usage(char *cmd)
 {
-    printf("%s v%s\n", cmd, VERSION);
+    printf("\n%s v%s\n", basename(cmd), VERSION);
     printf("An automatic sample rate switcher for CamillaDSP\n");
-    printf("\nUSAGE:\n    %s [FLAGS] [OPTIONS]\n", cmd);
+    printf("\nUSAGE:\n    %s [FLAGS] [OPTIONS]\n", basename(cmd));
     printf("\nFLAGS:\n");
     printf("    -c, --capture			Update capture_samplerate instead of samplerate\n");
     printf("    -t, --timestamp			Prepend timestamp to log messages\n");

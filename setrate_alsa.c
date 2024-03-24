@@ -4,7 +4,7 @@
 // Automatic sample rate switcher for CamillaDSP
 //
 // setrate_alsa.c
-// Alsa control management
+// Alsa controls management
 //
 ////////////////////////////////////////////////////
 
@@ -17,12 +17,12 @@ extern int rate;	// Current sample rate
 
 char device_name[MAX_DEVICE_NAME];  // Capture sound card name 
 
-snd_ctl_t *ctl;                     // Pointer to sound card control handle 
+snd_ctl_t *ctl;                     // Pointer to sound card controls handle 
 snd_ctl_event_t *alsa_event;        // Pointer to alsa event 
 const char *event_name;             // Pointer to event name
 unsigned int event_numid;           // Numeric event id
 snd_ctl_elem_value_t *elem_value;   // Pointer to event element value
-snd_async_handler_t *async_handler; // Async handler for the alsa control
+snd_async_handler_t *async_handler; // Async handler for the alsa controls
 
 
 ////////////////////////////////////////
@@ -42,7 +42,7 @@ static void alsa_callback(snd_async_handler_t *handler)
 
     if (err < 0)
     {
-	writelog(ERR, "%20s: Error reading event element: %s\n", decode_state(state), snd_strerror(err));
+	writelog(ERR, "%-20s %-20s Error reading event element: %s\n", __func__, decode_state(state), snd_strerror(err));
 	return;
     }
 
@@ -62,7 +62,7 @@ static void alsa_callback(snd_async_handler_t *handler)
 
     if (err < 0)
     {
-        writelog(ERR, "%20s: Error reading event element: %s\n", decode_state(state), snd_strerror(err));
+        writelog(ERR, "%-20s %-20s Error reading event element: %s\n", __func__, decode_state(state), snd_strerror(err));
         return;
     }
    
@@ -77,35 +77,35 @@ static void alsa_callback(snd_async_handler_t *handler)
     // update the current sample rate
     rate = err;
 
-    writelog(USER, "%20s: BEGIN   : Sample Rate = %d Hz\n", decode_state(state), err);
-
     // Trigger a transition of the finite-state machine
     fsm_transit(RATE_CHANGE);
+
+    writelog(USER, "%-20s %-20s BEGIN   : Incoming Sample Rate = %d Hz\n", __func__, decode_state(state), err);
 }
 
 
 ///////////////////////////////////////
-// Initialise alsa control
+// Initialise alsa controls
 ///////////////////////////////////////
 void alsa_init()
 {
     int err; 
 
-    // Open the sound card (capture device) alsa control
+    // Open the sound card (capture device) alsa controls
     err = snd_ctl_open(&ctl, device_name, SND_CTL_READONLY);
 
     if (err < 0)
     {
-	writelog(ERR, "Fatal error: Cannot open alsa control for the device %s: %s\n", device_name, snd_strerror(err));
+	writelog(ERR, "Fatal error: Cannot open alsa controls for the device %s: %s\n", device_name, snd_strerror(err));
         exit(FAIL);
     }
 
-    // Add and async handler for the alsa control
+    // Add and async handler for the alsa controls
     err = snd_async_add_ctl_handler(&async_handler, ctl, alsa_callback, NULL); 
 	
     if (err < 0)
     {
-        writelog(ERR, "Fatal error: Cannot add an asynchronous handler for the alsa control: %s\n", snd_strerror(err));
+        writelog(ERR, "Fatal error: Cannot add an asynchronous handler to the alsa controls: %s\n", snd_strerror(err));
         snd_ctl_close(ctl);
         exit(FAIL);
     }
@@ -120,7 +120,7 @@ void alsa_init()
         exit(FAIL);
     }
 
-    writelog(NOTICE, "%20s: Alsa control for the device %s initialised\n", decode_state(state), device_name);
+    writelog(NOTICE, "%-20s %-20s Alsa controls initialised for the device %s\n", __func__, decode_state(state), device_name);
 
     return;
 }
