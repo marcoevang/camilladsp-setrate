@@ -23,7 +23,7 @@ This tool may also allow resampling to a fixed playback rate and upsampling by a
 In order for ***camilladsp-setrate*** to work the audio capture device must provide the necessary information about the sample rate change. ***camilladsp-setrate*** is designed to work with a *USB gadget* capture device, which is one of the few that fulfils this requirement.  
 The term *USB Gadget* refers to a device that uses a USB port and its control hardware to act as a peripheral (the term 'gadget' here is to be understood as 'peripheral'). This type of device was chosen for this project because it is available for cheap on certain types of Raspberry Pi boards after proper software configuration (on this subject, see this [thread](https://www.audiosciencereview.com/forum/index.php?threads/using-a-raspberry-pi-as-equaliser-in-between-an-usb-source-ipad-and-usb-dac.25414/) and this [guide](https://www.diyaudio.com/community/threads/linux-usb-audio-gadget-rpi4-otg.342070/post-7240169)).
 
-it is not excluded that this tool may work with other capture devices. Feel free to do your own experiments.
+It is not excluded that this tool may work with other capture devices. Feel free to do your own experiments.
 
 ## Context
 I have tested **_camilladsp-setrate_**  on my Raspberry Pi 4 with its USB-C port configured in gadget mode for audio capture. I expect it may also work on other boards supporting *USB gadget* mode, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry Pi CM4 and BeagleBones.  
