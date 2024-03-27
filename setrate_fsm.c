@@ -13,6 +13,10 @@
 #include <libwebsockets.h>
 #include "setrate.h"
 
+extern int rate;		// Current sample rate
+extern int capture;		// capture option
+extern int upsampling;		// upsampling option
+extern int upsampling_factor;	// upsampling factor
 
 // A cell of the transition table
 typedef struct 
@@ -101,7 +105,7 @@ void fsm_init()
     transition_table[WAIT_RESPONSE][DISCONNECT].action		 = reconnection_request;
     transition_table[WAIT_RESPONSE][DISCONNECT].next_state	 = START;
 
-    writelog(NOTICE, "%-20s %-20s Finite-state machine initialised\n", __func__, decode_state(state));
+    writelog(NOTICE, "Finite-state machine initialised\n");
 
     // Set the initial state
     state = START;
@@ -141,19 +145,19 @@ int fsm_transit(events event)
     // If next state is INIT there is nothing to be done
     if (next_state == INIT)
 	return(SUCCESS);
-    
-    writelog(NOTICE, "%-20s %-20s Event   : %s\n", __func__, decode_state(state), decode_event(event));
-    writelog(NOTICE, "%-20s %-20s Action  : %s\n", __func__, decode_state(state), decode_action(action));
-    writelog(NOTICE, "%-20s %-20s State   : %s\n", __func__, decode_state(state), decode_state(next_state));
-
-    // Update the current state
-    state = next_state;
+   
+    writelog(NOTICE, "Event     : %s\n", decode_event(event));
+    writelog(NOTICE, "Action    : %s\n", decode_action(action));
+    writelog(NOTICE, "Next State: %s\n", decode_state(next_state));
 
     // Carry out the action, if any
     if (action)
 	ret = action();
     else
 	ret = SUCCESS;
+
+    // Update the current state
+    state = next_state;
     
     return(ret);
 }
@@ -171,7 +175,12 @@ int fsm_transit(events event)
 //////////////////////////////////////////////
 int notify_success(void)
 {
-    writelog(USER, "%-20s %-20s END     : Configuration update success\n", __func__, decode_state(state));
+    if (capture)
+	writelog(USER, "END       : capture_samplerate set to %d\n", rate);
+    else if (upsampling)
+	writelog(USER, "END       : capture_samplerate set to %d, samplerate set to %d\n", rate, rate*upsampling_factor);
+    else
+	writelog(USER, "END       : samplerate set to %d\n", rate);
 
     return(SUCCESS);
 }
@@ -182,7 +191,7 @@ int notify_success(void)
 //////////////////////////////////////////////
 int notify_failure(void)
 {
-    writelog(WARN, "%-20s%-20s END     : Configuration update abort\n", __func__, decode_state(state));
+    writelog(WARN, "END       : Configuration update abort\n");
 
     return(SUCCESS);
 }

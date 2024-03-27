@@ -18,7 +18,7 @@ extern struct lws_context *context; // Websocket context
 extern int    server_port;	    // Server IP port
 extern char   server_address[];	    // Server IP address
 extern states state;		    // Global state
-
+extern int interrupted;		    // SIGINT signal flag
 int upsampling_factor;		    // Upsampling factor
 int rate;			    // Sample rate
 
@@ -162,10 +162,10 @@ int main(int argc, char* argv[])
     else
 	lws_set_log_level(logmask, timestamp ? NULL : lwsl_emit_stderr_notimestamp);
 
-    writelog(NOTICE, "%-20s %-20s ================================================\n", __func__, decode_state(state));
-    writelog(NOTICE, "%-20s %-20s %s v%s\n", __func__, decode_state(state), basename(argv[0]), VERSION);
-    writelog(NOTICE, "%-20s %-20s An automatic sample rate switcher for CamillaDSP\n", __func__, decode_state(state));
-    writelog(NOTICE, "%-20s %-20s ================================================\n", __func__, decode_state(state));
+    writelog(USER, "================================================\n");
+    writelog(USER, "%s v%s\n", basename(argv[0]), VERSION);
+    writelog(USER, "An automatic sample rate switcher for CamillaDSP\n");
+    writelog(USER, "================================================\n");
 
     // Initialise the finite-state machine
     fsm_init();
@@ -181,8 +181,10 @@ int main(int argc, char* argv[])
 
     err = 0;
 
-    // Request websocket servicing
-    while (err >= 0)
+    // Websocket servicing loop.
+    // The loop is exited in case of error or
+    // if the SIGINT signal is raised
+    while (err >= 0 && !interrupted)
 	err = lws_service(context, 0);
 
     // Destroy websocket context

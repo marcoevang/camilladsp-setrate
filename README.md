@@ -1,4 +1,4 @@
-# **camilladsp-setrate  version 2.1.1**
+# **camilladsp-setrate  version 2.2.0**
 
 ## Automatic sample rate switcher for [CamillaDSP](https://github.com/HEnquist/camilladsp)
 
@@ -6,35 +6,66 @@ This tool provides two useful services:
 
 1. **Automatic updating of the sample rate when that of the audio stream being captured changes.**
 
-*CamillaDSP* works at a fixed sample rate. However, sample rate may change during a session, e.g. when listening to a playlist. In this case, if the sample rate from the audio source does not match the sample rate *CamillaDSP* is using for processing,  playback will not be correct.  
+*CamillaDSP* works at a fixed sample rate. However, sample rate may change during a session, e.g. when listening to a playlist. In this case, if the incoming sample rate does not match the one *CamillaDSP* is using for processing,  playback will not be correct.  
 
-***camilladsp-setrate*** solves this problem by changing *CamillaDSP*'s configuration on-the-fly to match the sampling rate of the captured audio. This is obtained by subscribing to *alsa* events, reading the incoming sample rate when it changes, reading the current configuration of *CamillaDSP* and overwriting the *samplerate* and/or *capture_samplerate* parameters. To this end, some commands of the [CamillaDSP websocket interface]( https://github.com/HEnquist/camilladsp/blob/master/websocket.md) are issued. The command `GetConfig` provides the current configuration; if the current configuration is not valid, the `GetPreviousConfig` command is issued. Then the _samplerate_ and/or *capture_samplerate* values in the configuration are replaced with the correct ones. The _chunksize_ parameter value is as well updated as a function of the sample rate, calculating the value suggested in the section "Devices" of the [*CamillaDSP* home page](https://github.com/HEnquist/camilladsp).  Finally, the updated configuration is flushed to the DSP with the command `SetConfig.`
+***camilladsp-setrate*** solves this problem by changing *CamillaDSP*'s configuration on-the-fly to match the sample rate of the captured audio.  
 
-***camilladsp-setrate*** may also allow resampling to a fixed playback rate and upsampling by a fixed factor. Details are provided below in the "Running" section (see `--capture` flag and `--uppsampling` option).  
-
-<ins>This feature has only been tested with USB gadget capture devices</ins>.
+This tool may also allow resampling to a fixed playback rate and upsampling by a fixed factor. Details are provided below in the "Running" section (see `--capture` flag and `--uppsampling` option).  
 
 2. **Automatic reloading of a valid configuration whenever the playback device becomes available.**    
 
 *CamillaDSP* stops working when the playback device is no longer available. This happens, for example, when your DAC is switched off or you switch to another input. Unfortunately, *CamillaDSP* remains blocked even when the playback device becomes available again. 
 
-***camilladsp-setrate*** reloads a valid configuration as soon as the playback device reappears, thus unlocking _CamillaDSP_. This result is obtained by going through the same procedure described above for sample rate. In this case, however, the procedure is initiated by a signal sent by the operating system to the _**camilladsp-setrate**_ process when the playback device is detected. This is obtained by means of an `udev rule` (see the `88-DAC.rules` file).  
+***camilladsp-setrate*** reloads a valid configuration as soon as the playback device reappears, thus unlocking _CamillaDSP_.   
 
-<ins>This feature has only been tested with USB playback devices</ins>.
+## Foreword
+
+In order for ***camilladsp-setrate*** to work the audio capture device must provide the necessary information about the sample rate change. ***camilladsp-setrate*** is designed to work with a *USB gadget* capture device, which is one of the few that fulfils this requirement.  
+The term *USB Gadget* refers to a device that uses a USB port and its control hardware to act as a peripheral (the term 'gadget' here is to be understood as 'peripheral'). This type of device was chosen for this project because it is available for cheap on certain types of Raspberry Pi boards after proper software configuration (on this subject, see this [thread](https://www.audiosciencereview.com/forum/index.php?threads/using-a-raspberry-pi-as-equaliser-in-between-an-usb-source-ipad-and-usb-dac.25414/) and this [guide](https://www.diyaudio.com/community/threads/linux-usb-audio-gadget-rpi4-otg.342070/post-7240169)).
+
+it is not excluded that this tool may work with other capture devices. Feel free to do your own experiments.
 
 ## Context
-I have tested **_camilladsp-setrate_**  on my Raspberry Pi 4 in gadget mode with its USB-C port configured for audio capture. I expect it may also work on other boards supporting USB gadget mode, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry Pi CM4 and BeagleBones.  Feel free to do your own experiments with other types of capture devices.
+I have tested **_camilladsp-setrate_**  on my Raspberry Pi 4 with its USB-C port configured in gadget mode for audio capture. I expect it may also work on other boards supporting *USB gadget* mode, such as Raspberry Pi Zero, Raspberry Pi 3A+, Raspberry Pi CM4 and BeagleBones.  
 
-It should be noted that drivers for devices other than USB gadgets may not feature the alsa control that provides information on sample rate change.  
 This project was developed on DietPi 64-bit. It should also work on other Debian-based Linux distributions and arguably on other Linux flavors as well.   The software is coded in C language with use of the *alsa* and *libwebsockets* C API's.
 
+The DSP unlocking functionality has only been tested with USB playback devices.
+
 ## Requirements
+
 - Linux operating system
 - C language development environment
 - Alsa sound system
 - Alsa C library
 - Libwebsockets C library
 - [*CamillaDSP*](https://github.com/HEnquist/camilladsp) up and running
+- A capture device providing information about sample rate change
+
+For ***camilladsp-setrate*** to work, <ins>the capture device driver must feature an *alsa control* function informing when the sample rate changes and what its value is</ins>. You can check if your capture device meets this requirement by issuing the following command:
+
+`amixer -D <your device> controls`
+
+If the device driver sports the required *alsa control*, the above command should list a control whose name contains the word *'rate'*. In any case, please check the documentation of your device.
+
+For example, in the case of a *USB gadget*, the command:
+
+`amixer -D hw:UAC2Gadget controls`
+
+produces this output:
+
+`numid=2,iface=MIXER,name='PCM Capture Switch'`  
+`numid=3,iface=MIXER,name='PCM Capture Volume'`  
+`numid=1,iface=PCM,name='Capture Pitch 1000000'`  
+`numid=4,iface=PCM,name='Capture Rate'`  
+
+NOTE that since the *USB gadget* device acts as a peripheral, it must be connected to a USB device that acts as a host. Thus, <ins>your audio source must be equipped with a host USB port </ins> (usually a female USB Type A).
+
+## How it works
+
+To achieve sample rate switching ***camilladsp-setrate*** subscribes to alsa events, reads the value of the sample rate when it changes, reads the current configuration of *CamillaDSP* and overwrites the *samplerate* and/or *capture_samplerate* parameters. To this end, some commands of the [CamillaDSP websocket interface]( https://github.com/HEnquist/camilladsp/blob/master/websocket.md) are issued. The command `GetConfig` provides the current configuration; if the current configuration is not valid, the `GetPreviousConfig` command is issued. Then the _samplerate_ and/or *capture_samplerate* values in the current configuration of *CamillaDSP* are replaced with the new ones. The _chunksize_ parameter value is as well updated as a function of the sample rate, calculating the value suggested in the section "Devices" of the [*CamillaDSP* home page](https://github.com/HEnquist/camilladsp).  Finally, the updated configuration is flushed to the DSP with the command `SetConfig.`
+
+To achieve DSP unlocking when the playback device reappears, ***camilladsp-setrate*** goes through the same procedure described above for sample rate. In this case, however, the procedure is initiated by a signal sent by the operating system to the _**camilladsp-setrate**_ process when the playback device is detected. This is obtained by means of an `udev rule` (see the `88-DAC.rules` file).
 
 ## Building
 
@@ -139,13 +170,15 @@ The `--capture` flag and `--upsampling` options change the way ***camilladsp-set
 
 - [ ] if `--capture` and `--upsampling` are both omitted, *samplerate* is set to that of the audio being captured and *chunksize* is updated as a function of *samplerate*. The *capture_samplerate* parameter is left unchanged.  
 
-  <u>In this case resampling shall be disabled and *capture_samplerate* shall not be set in the configuration file</u>.
+  <ins>In this case resampling shall be disabled and *capture_samplerate* shall not be set in the configuration file</ins>.
 
-- [ ] if `--capture` is used, *capture_samplerate* is set to that of the audio being captured. The *samplerate* and *chunksize* parameters are left unchanged. This flag should be used to achieve resampling of the captured audio to the fixed playback rate set by the *samplerate* parameter in the configuration file.  <ins>It is up to the user to enable resampling in the configuration file</ins>.
+- [ ] if `--capture` is used, *capture_samplerate* is set to that of the audio being captured. The *samplerate* and *chunksize* parameters are left unchanged. This flag should be used to achieve resampling of the captured audio to the fixed playback rate set by the *samplerate* parameter in the configuration file.  
+
+  <ins>In this case resampling shall be enabled in the configuration file</ins>.
 
 - [ ] If `--upsampling` is used, *capture_samplerate* is set to that of the audio being captured and *samplerate* is set equal to the input rate multiplied by the specified upsampling factor (the latter must be positive). The *chunksize* parameter is as well updated as a function of *samplerate*. This option should be used to obtain in playback upsampled audio by a constant factor. For example, this flag can be used to instruct CamillaDSP to perform 2X or 4X oversampling regardless of the sample rate of the incoming audio. Make sure your playback device supports the resulting upsampled rate. 
 
-  <ins>It is up to the user to enable resampling in the configuration file</ins>.
+  <ins>In this case resampling shall be enabled in the configuration file</ins>.
 
 Note that `--capture` and `--upsampling` cannot be used at the same time.
 
@@ -172,12 +205,13 @@ I strongly recommend not running ***camilladsp-setrate*** as *super-user*.
 
 ## Final notes
 - This tool is useful if the audio player and *CamillaDSP* run on distinct computers. In case they run on the same computer, I recommend using the [alsa_cdsp](https://github.com/scripple/alsa_cdsp) plugin instead to get automatic sample rate switching.
-- Devices other than USB gadgets may not provide the necessary information on sample rate change.
-- Starting with version 2.0.0 the sample rate change process is driven by a finite-state machine whose diagram is provided under the *doc* folder.  You can find tons of information about this technique on the Internet, just search for "finite-state machine".  
+- Starting with version 2.0.0 the sample rate change process is driven by a finite-state machine whose diagram is provided under the *doc* folder.  You can find tons of information about this technique on the Internet (start [here](https://www.spiceworks.com/tech/tech-general/articles/what-is-fsm/) and [here](https://broken-bytes.medium.com/using-state-machines-in-software-development-b784f6d37b34))  
 - Starting with version 2.1.0 the flags `--err`, `--warn`, `--user` and `--notice` have been removed as unnecessary. The `--loglevel` option can be used instead.
 
 
-- If your _CamillaDSP_ configuration is big, you may need to increase the size of the message buffer by updating the `BUFLEN` value in the `setrate.h` file.
+- Capture devices other than *USB gadgets* may not provide the necessary information on sample rate change.
+- If using a capture device other than the *USB gadget*, you may need to change the `ALSA_CONTROL_NAME` constant value in the `setrate.h` file according to the name of the alsa control.
+- If your _CamillaDSP_ configuration is big, you may need to increase the size of the message buffer by updating the `BUFLEN` constant value in the `setrate.h` file.
 
 
 - ***camilladsp-setrate***  works with all released versions of CamillaDSP.

@@ -12,8 +12,8 @@
 #include <libwebsockets.h>
 #include "setrate.h"
 
-extern states state;		    // Global state
-
+extern states state;    // Global state
+int interrupted = 0;	// SIGINT signal flag
 
 ///////////////////////////////////////
 // Enable/Disable signal catching
@@ -21,9 +21,15 @@ extern states state;		    // Global state
 void signal_control(int enable)
 {
     if (enable)
+    {
 	signal(SOUNDCARD_UP_SIG, soundcard_up_handler);
+	signal(SIGINT, sigint_handler);
+    }
     else
+    {
 	signal(SOUNDCARD_UP_SIG, SIG_IGN);
+	signal(SIGINT, SIG_IGN);
+    }
 }
 
 
@@ -44,3 +50,10 @@ void soundcard_up_handler(int sig)
     fsm_transit(RATE_CHANGE);
 }
 
+///////////////////////////////////////
+// Handle incoming signal SIGINT 
+///////////////////////////////////////
+void sigint_handler(int sig)
+{
+    interrupted = 1;
+}

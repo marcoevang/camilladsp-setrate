@@ -1,5 +1,13 @@
 # CHANGE LOG
 
+### [2.2.0] - 2024-03-27
+
+### Changed
+
+- [all files] Finite state machine, logging functionality and documentation have been improved.
+
+  
+
 ### [2.1.1] - 2024-03-24
 
 ### Fixed

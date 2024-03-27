@@ -97,11 +97,11 @@ void websocket_init()
 
     if (!context)
     {
-	writelog(ERR, "%-20s %-20s Fatal error: Failed to create libwebsockets context\n", __func__, decode_state(state));
+	writelog(ERR, "Fatal error: Failed to create libwebsockets context\n");
 	exit(FAIL);
     }
 
-    writelog(NOTICE, "%-20s %-20s Websocket environment initialised\n", __func__, decode_state(state));
+    writelog(NOTICE, "Websocket environment initialised\n");
 
     // Initiate a connection by calling the scheduler
     lws_sul_schedule(context, 0, &sul, connection_request, 100);
@@ -119,14 +119,16 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
     // Handle callback depending on reason
     switch (reason)
     {
+#ifdef LWS_DEBUG
 	case LWS_CALLBACK_SERVER_NEW_CLIENT_INSTANTIATED:
 	    // A new client websocket instance was created 
-            writelog(NOTICE, "%-20s %-20s A new client websocket instance was created\n", __func__, decode_state(state));
+            writelog(NOTICE, "A new client websocket instance was created\n");
 	    break;
+#endif
 
         case LWS_CALLBACK_CLIENT_ESTABLISHED:
 	    // Connection with server established
-            writelog(NOTICE, "%-20s %-20s Connected to websocket server at %s:%d\n", __func__, decode_state(state), server_address, server_port);
+            writelog(NOTICE, "Connected to websocket server at %s:%d\n", server_address, server_port);
 
 	    // Trigger a transition of the finite-state machine
 	    fsm_ret = fsm_transit(CONNECT);
@@ -134,7 +136,9 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
 
         case LWS_CALLBACK_CLIENT_WRITEABLE:
 	    // Server can accept commands
-            writelog(NOTICE, "%-20s %-20s Websocket server can accept commands\n", __func__, decode_state(state));
+#ifdef LWS_DEBUG
+            writelog(NOTICE, "Websocket server can accept commands\n");
+#endif
 
 	    // Trigger a transition of the finite-state machine
 	    fsm_ret = fsm_transit(WRITEABLE);
@@ -143,19 +147,24 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
         case LWS_CALLBACK_CLIENT_RECEIVE:
 	    // Data received from server
 	    strcpy(command + LWS_PRE, (char *)in);
-            writelog(NOTICE, "%-20s %-20s Response: %.*s\n", __func__, decode_state(state), CUTLEN, (char *)in);
+
+#ifdef DEBUG
+            writelog(NOTICE, "Response  : %.*s\n", CUTLEN, (char *)in);
+#endif
 
 	    // Trigger a transition of the finite-state machine
 	    fsm_ret = fsm_transit(check_received_data((char *)in));
             break;
 
+#ifdef LWS_DEBUG
 	case LWS_CALLBACK_CLIENT_RECEIVE_PONG:
-	    writelog(NOTICE, "%-20s %-20s Pong received from websocket server\n", __func__, decode_state(state));
+	    writelog(NOTICE, "Pong received from websocket server\n");
 	    break;
+#endif
 
         case LWS_CALLBACK_CLIENT_CLOSED:
             // Connection closed by client.
-            writelog(NOTICE, "%-20s %-20s Disconnected from websocket server %s:%d\n", __func__, decode_state(state), server_address, server_port);
+            writelog(NOTICE, "Disconnected from websocket server %s:%d\n", server_address, server_port);
 
 	    // Trigger a transition of the finite-state machine
 	    fsm_ret = fsm_transit(DISCONNECT);
@@ -163,27 +172,31 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
 	    
 	case LWS_CALLBACK_CLOSED:
             // Connection closed by server.
-            writelog(WARN, "%-20s %-20s Websocket server triggered disconnection\n", __func__, decode_state(state));
+            writelog(WARN, "Websocket server triggered disconnection\n");
 
 	    // Trigger a transition of the finite-state machine
 	    fsm_ret = fsm_transit(DISCONNECT);
             break;
 
+#ifdef LWS_DEBUG
         case LWS_CALLBACK_WSI_DESTROY:
             // Websocket instance was destroyed after connection closing
-            writelog(NOTICE, "%-20s %-20s Websocket instance destroyed\n", __func__, decode_state(state));
+            writelog(NOTICE, "Websocket instance destroyed\n");
             break;
+#endif
 
         case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
             // Connection ended with error
-            writelog(ERR, "%-20s %-20s Connection to Websocket Server at %s:%d failed: %s\n", __func__, decode_state(state), server_address, server_port, (char *)in);
+            writelog(ERR, "Connection to Websocket Server at %s:%d failed: %s\n", server_address, server_port, (char *)in);
 
 	    // Trigger a transition of the finite-state machine
 	    fsm_ret = fsm_transit(DISCONNECT);
             break;
 
         default:
-            writelog(NOTICE, "%-20s %-20s Callback reason %2d (not an error)\n", __func__, decode_state(state), reason);
+#ifdef LWS_DEBUG
+	    writelog(NOTICE, "Callback reason %2d (not an error)\n", reason);
+#endif
             break;
     }
 
@@ -219,7 +232,10 @@ int callback_on_writeable(void)
 int send_get_config(void)
 {
     strcpy(command + LWS_PRE, "\"GetConfig\"");
-    writelog(NOTICE, "%-20s %-20s Command : %s\n", __func__, decode_state(state), command + LWS_PRE);
+
+#ifdef DEBUG
+    writelog(NOTICE, "Command   : %s\n", command + LWS_PRE);
+#endif
 
     // Send the command to websocket server
     lws_write(websocket, command + LWS_PRE, strlen(command + LWS_PRE), LWS_WRITE_TEXT);
@@ -234,7 +250,10 @@ int send_get_config(void)
 int send_get_previous_config(void)
 {
     strcpy(command + LWS_PRE, "\"GetPreviousConfig\"");
-    writelog(NOTICE, "%-20s %-20s Command : %s\n", __func__, decode_state(state), command + LWS_PRE);
+
+#ifdef DEBUG
+    writelog(NOTICE, "Command   : %s\n", command + LWS_PRE);
+#endif
 
     // Send the command to websocket server
     lws_write(websocket, command + LWS_PRE, strlen(command + LWS_PRE), LWS_WRITE_TEXT);
@@ -254,14 +273,16 @@ int send_set_config(void)
 
     if (ret == SUCCESS)
     {
-	writelog(NOTICE, "%-20s %-20s Command : %.*s\n", __func__, decode_state(state), CUTLEN, command + LWS_PRE);
+#ifdef DEBUG
+	writelog(NOTICE, "Command   : %.*s\n", CUTLEN, command + LWS_PRE);
+#endif
 
 	// Send the command to websocket server
 	lws_write(websocket, command + LWS_PRE, strlen(command + LWS_PRE), LWS_WRITE_TEXT);
     }
     else
     {
-	writelog(ERR, "%-20s %20s Error in the preparation of the command SetConfig. ret=%d\n", __func__, decode_state(state), ret);
+	writelog(ERR, "Error in the preparation of the command SetConfig. ret=%d\n", ret);
 	exit(FAIL);
     }
 
@@ -275,7 +296,7 @@ int send_set_config(void)
 //////////////////////////////////////////////
 int reconnection_request(void)
 {
-    writelog(NOTICE, "%-20s %-20s Reconnection attempt...\n", __func__, decode_state(state));
+    writelog(NOTICE, "Reconnection attempt...\n");
 
     // Schedule a new connection to websocket server
     lws_sul_schedule(context, 0, &sul, connection_request, RECONN_INTERVAL);

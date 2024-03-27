@@ -8,6 +8,7 @@
 //
 ////////////////////////////////////////////////////
 
+#include <string.h>
 #include <alsa/asoundlib.h>
 #include <libwebsockets.h>
 #include "setrate.h"
@@ -42,15 +43,15 @@ static void alsa_callback(snd_async_handler_t *handler)
 
     if (err < 0)
     {
-	writelog(ERR, "%-20s %-20s Error reading event element: %s\n", __func__, decode_state(state), snd_strerror(err));
+	writelog(ERR, "Error reading event element: %s\n", snd_strerror(err));
 	return;
     }
 
     // Get the event element name
     event_name = snd_ctl_event_elem_get_name(alsa_event);
-    
+   
     // If the event is not a sample rate change, there is nothing to be done
-    if (strcmp(event_name, "Capture Rate"))
+    if (strcmp(event_name, ALSA_CONTROL_NAME))
 	return;
 
     // Prepare reading of the event element by setting event numid 
@@ -62,7 +63,7 @@ static void alsa_callback(snd_async_handler_t *handler)
 
     if (err < 0)
     {
-        writelog(ERR, "%-20s %-20s Error reading event element: %s\n", __func__, decode_state(state), snd_strerror(err));
+        writelog(ERR, "Error reading event element: %s\n", snd_strerror(err));
         return;
     }
    
@@ -77,10 +78,10 @@ static void alsa_callback(snd_async_handler_t *handler)
     // update the current sample rate
     rate = err;
 
+    writelog(USER, "BEGIN     : Incoming Sample Rate = %d Hz\n", err);
+
     // Trigger a transition of the finite-state machine
     fsm_transit(RATE_CHANGE);
-
-    writelog(USER, "%-20s %-20s BEGIN   : Incoming Sample Rate = %d Hz\n", __func__, decode_state(state), err);
 }
 
 
@@ -92,7 +93,7 @@ void alsa_init()
     int err; 
 
     // Open the sound card (capture device) alsa controls
-    err = snd_ctl_open(&ctl, device_name, SND_CTL_READONLY);
+    err = snd_ctl_open(&ctl, device_name, SND_CTL_NONBLOCK);
 
     if (err < 0)
     {
@@ -120,7 +121,7 @@ void alsa_init()
         exit(FAIL);
     }
 
-    writelog(NOTICE, "%-20s %-20s Alsa controls initialised for the device %s\n", __func__, decode_state(state), device_name);
+    writelog(NOTICE, "Alsa initialised for the device %s\n", device_name);
 
     return;
 }
