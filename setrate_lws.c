@@ -26,14 +26,13 @@ static int websocket_callback(struct lws *, enum lws_callback_reasons, void *, v
 static struct lws_protocols protocols[] = 
 { 
     {
-        "MyProtocol",			// Protocol name
-        websocket_callback,		// Callback function
-        0,				// Per-session data size
-        //BUFLEN,				// Receive buffer
-        0,				// Receive buffer
-        0,				// ID number (reserved)
-        NULL,				// User data
-        0				// Attach count
+        .name                  = "MyProtocol",		// Protocol name
+        .callback              = websocket_callback,	// Callback function
+        .per_session_data_size = 0,			// No per-session user data 
+        .rx_buffer_size        = MAX_PAYLOAD_SIZE,	// Maximum payload size
+        .id                    = 0,			// Protocol ID
+        .user                  = NULL,			// User data
+        .tx_packet_size        = MAX_PAYLOAD_SIZE	// Maximum tx packet size
     },
     { NULL, NULL, 0, 0, 0, NULL, 0 }	// Terminate the list
 };
@@ -51,8 +50,7 @@ static const lws_retry_bo_t retry =
 };					// i.e. within 10 seconds after ping (370-360=10)
 
 
-char command[BUFLEN + LWS_PRE + 1];	// Global buffer for command string
-
+char command[MAX_PAYLOAD_SIZE + LWS_PRE + 1];	// Global buffer for command string
 
 /////////////////////////////////////////////
 // Attempt connection to websocket server
@@ -73,7 +71,7 @@ static void connection_request(lws_sorted_usec_list_t *_sul)
     connect_info.pwsi                      = &websocket;
  
     // Attempt to connect. In case of failure,
-    // a reconnection is scheduled after 1 second
+    // a reconnection is scheduled after a few seconds
     if (!lws_client_connect_via_info(&connect_info))
 	lws_sul_schedule(context, 0, _sul, connection_request, RECONN_INTERVAL);
 }
@@ -119,7 +117,7 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
     // Handle callback depending on reason
     switch (reason)
     {
-#ifdef LWS_DEBUG
+#ifdef DEBUG
 	case LWS_CALLBACK_SERVER_NEW_CLIENT_INSTANTIATED:
 	    // A new client websocket instance was created 
             writelog(NOTICE, "A new client websocket instance was created\n");
@@ -136,7 +134,7 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
 
         case LWS_CALLBACK_CLIENT_WRITEABLE:
 	    // Server can accept commands
-#ifdef LWS_DEBUG
+#ifdef DEBUG
             writelog(NOTICE, "Websocket server can accept commands\n");
 #endif
 
@@ -146,6 +144,17 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
 	
         case LWS_CALLBACK_CLIENT_RECEIVE:
 	    // Data received from server
+
+/*
+	    // Check if the received message size execeed local command buffer
+	    if (len > MAX_PAYLOAD_SIZE)
+	    {
+                writelog(ERR, "Received message size exceeds maximum payload size\n");
+		// Return zero as the client never requests a disconnection
+                return(0);
+            }
+*/
+
 	    strcpy(command + LWS_PRE, (char *)in);
 
 #ifdef DEBUG
@@ -156,7 +165,7 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
 	    fsm_ret = fsm_transit(check_received_data((char *)in));
             break;
 
-#ifdef LWS_DEBUG
+#ifdef DEBUG
 	case LWS_CALLBACK_CLIENT_RECEIVE_PONG:
 	    writelog(NOTICE, "Pong received from websocket server\n");
 	    break;
@@ -178,7 +187,7 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
 	    fsm_ret = fsm_transit(DISCONNECT);
             break;
 
-#ifdef LWS_DEBUG
+#ifdef DEBUG
         case LWS_CALLBACK_WSI_DESTROY:
             // Websocket instance was destroyed after connection closing
             writelog(NOTICE, "Websocket instance destroyed\n");
@@ -194,8 +203,8 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
             break;
 
         default:
-#ifdef LWS_DEBUG
-	    writelog(NOTICE, "Callback reason %2d (not an error)\n", reason);
+#ifdef DEBUG
+	    writelog(NOTICE, "Callback reason %2d\n", reason);
 #endif
             break;
     }

@@ -1,4 +1,4 @@
-# **camilladsp-setrate  version 2.2.0**
+# **camilladsp-setrate  version 2.2.1**
 
 ## Automatic sample rate switcher for [CamillaDSP](https://github.com/HEnquist/camilladsp)
 
@@ -46,7 +46,7 @@ For ***camilladsp-setrate*** to work, <ins>the capture device driver must featur
 
 `amixer -D <your device> controls`
 
-If the device driver sports the required *alsa control*, the above command should list a control whose name contains the word *'rate'*. In any case, please check the documentation of your device.
+If the device driver sports the required *alsa control*, the above command should list a control whose name contains the word *'rate'* (or something like that). In any case, please check the documentation of your device.
 
 For example, in the case of a *USB gadget*, the command:
 
@@ -211,7 +211,7 @@ I strongly recommend not running ***camilladsp-setrate*** as *super-user*.
 
 - Capture devices other than *USB gadgets* may not provide the necessary information on sample rate change.
 - If using a capture device other than the *USB gadget*, you may need to change the `ALSA_CONTROL_NAME` constant value in the `setrate.h` file according to the name of the alsa control.
-- If your _CamillaDSP_ configuration is big, you may need to increase the size of the message buffer by updating the `BUFLEN` constant value in the `setrate.h` file.
+- ***camilladsp-setrate*** can handle *CamillaDSP* configuration files of a maximum size of about 16 KBytes. If the size of your configuration file is larger than this, you need to increase the size of the message buffer by updating the `MAX_PAYLOAD_SIZE` constant value in the `setrate.h` file.
 
 
 - ***camilladsp-setrate***  works with all released versions of CamillaDSP.

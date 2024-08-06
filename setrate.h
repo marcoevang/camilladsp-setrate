@@ -8,22 +8,22 @@
 //
 ////////////////////////////////////////////////////
 
-#define ALSA_CONTROL_NAME "Capture Rate"  // Name of the ala control 
-#define BUFLEN		32768	// Max buffer size
-#define TRUE		1
-#define FALSE		0
-#define FAIL		-1
-#define SUCCESS		0
-#define DISABLE		0
-#define ENABLE		1
-#define CUTLEN		80	    // Size of a truncated string
+#define ALSA_CONTROL_NAME   "Capture Rate"  // Name of the alsa control 
+#define MAX_PAYLOAD_SIZE    16*1024	    // Maximum payload size in bytes
+#define TRUE		    1
+#define FALSE		    0
+#define FAIL		    -1
+#define SUCCESS		    0
+#define DISABLE		    0
+#define ENABLE		    1
+#define CUTLEN		    80	    // Size of a truncated string
 
 #define RECONN_INTERVAL 3*LWS_USEC_PER_SEC	// Interval between reconnection attempts
 
 #define MAX_DEVICE_NAME 40	    // Maximum lenght of alsa device name
 #define MAX_ADDRESS_LEN 80	    // Maximum lenght of  websocket server IP address
 
-#define VERSION		"2.2.0"	    // Version number 
+#define VERSION		"2.2.1"	    // Version number 
 
 #define ERR		LLL_ERR
 #define WARN		LLL_WARN

@@ -1,5 +1,13 @@
 # CHANGE LOG
 
+### [2.2.1] - 2024-06-08
+
+### Fixed
+
+- [setrate_lws.c, setrate_util.c, setrate.h] Fixed a bug causing error with large CamillaDSP configuration files.
+
+   
+
 ### [2.2.0] - 2024-03-27
 
 ### Changed

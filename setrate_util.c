@@ -10,8 +10,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libwebsockets.h>
 #include "setrate.h"
 
+
+extern states state;    // Global state
+
+// Command line options
 extern int capture;
 extern int upsampling;
 extern int upsampling_factor;
@@ -50,6 +55,7 @@ events check_received_data(char *received_data)
     }
 
     // Received data is unforeseen
+    writelog(ERR, "Unforeseen received data: %s\n", received_data);
     return(-1);
 }
 
@@ -89,7 +95,7 @@ int prepare_setconfig(char *orig, int rate)
     if (!orig || rate <= 0)
         return(FAIL);
 
-    tmpbuf = malloc(BUFLEN);
+    tmpbuf = malloc(MAX_PAYLOAD_SIZE);
 
     if (!tmpbuf)
         return(FAIL);
