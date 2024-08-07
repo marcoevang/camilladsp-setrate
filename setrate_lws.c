@@ -145,15 +145,14 @@ static int websocket_callback(struct lws *wsi, enum lws_callback_reasons reason,
         case LWS_CALLBACK_CLIENT_RECEIVE:
 	    // Data received from server
 
-/*
 	    // Check if the received message size execeed local command buffer
 	    if (len > MAX_PAYLOAD_SIZE)
 	    {
                 writelog(ERR, "Received message size exceeds maximum payload size\n");
+
 		// Return zero as the client never requests a disconnection
                 return(0);
             }
-*/
 
 	    strcpy(command + LWS_PRE, (char *)in);
 
