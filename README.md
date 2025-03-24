@@ -20,7 +20,7 @@ This tool may also allow resampling to a fixed playback rate and upsampling by a
 
 
 
-**IMPORTANT NOTE**: As of *CamillaDSP* version 3.1, automatic unlocking after temporary unavailability of the playback device is no longer necessary as the alsa playback device is guaranteed to resume after pause. As a consequence, steps 5. and 6. in the "Installing" section must be skipped.
+**IMPORTANT NOTE**: As of *CamillaDSP* version 3.0.1, automatic unlocking after temporary unavailability of the playback device is no longer necessary as the alsa playback device is guaranteed to resume after pause. As a consequence, steps 5. and 6. in the "Installing" section must be skipped.
 
 
 
@@ -126,9 +126,9 @@ sudo usermod -a dietpi -G audio
 ```
 
 
-5. If your version of *CamillaDSP* is 3.1 or later, please skip this step.
+5. If your version of *CamillaDSP* is 3.0.1 or later, please skip this step.
    
-   If your version of CamillaDSP is 3.0 or earlier:
+   If your version of CamillaDSP is 3.0.0 or earlier:
    
    Edit the file `85-DAC.rules` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your USB DAC.
    You can obtain those values with the following command :
@@ -138,9 +138,9 @@ usb-devices
 ```
 (_Vendor_ corresponds to `ID_VENDOR_ID` and _ProdID_ corresponds to `ID_MODEL_ID`)  
 
-6. If your version of *CamillaDSP* is 3.1 or later, please skip this step.
+6. If your version of *CamillaDSP* is 3.0.1 or later, please skip this step.
 
-   If your version of CamillaDSP is 3.0 or earlier:
+   If your version of CamillaDSP is 3.0.0 or earlier:
 
    Copy the file `85-DAC.rules` to the `udev` rules folder:
 
