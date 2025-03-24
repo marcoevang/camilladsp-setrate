@@ -10,13 +10,19 @@ This tool provides two useful services:
 
 ***camilladsp-setrate*** solves this problem by changing *CamillaDSP*'s configuration on-the-fly to match the sample rate of the captured audio.  
 
-This tool may also allow resampling to a fixed playback rate and upsampling by a fixed factor. Details are provided below in the "Running" section (see `--capture` flag and `--uppsampling` option).  
+This tool may also allow resampling to a fixed playback rate and upsampling by a fixed factor. Details are provided below in the 'Running' section (see `--capture` flag and `--uppsampling` option).  
 
 2. **Automatic reloading of a valid configuration whenever the playback device becomes available.**    
 
-*CamillaDSP* as it must be, stops working when the playback device is no longer available. This happens, for example, when your DAC is switched off or you switch to another input. Unfortunately, *CamillaDSP* remains blocked even when the playback device becomes available again. 
+*CamillaDSP* as it must be, stops working when the playback device is no longer available. This happens, for example, when your DAC is switched off or you switch to another input. Unfortunately, *CamillaDSP*, up to version 3.0, remains blocked even when the playback device becomes available again. 
 
 ***camilladsp-setrate*** reloads a valid configuration as soon as the playback device reappears, thus unlocking _CamillaDSP_.   
+
+
+
+**IMPORTANT NOTE**: As of *CamillaDSP* version 3.1, automatic unlocking after temporary unavailability of the playback device is no longer necessary as the alsa playback device is guaranteed to resume after pause. As a consequence, steps 5. and 6. in the "Installing" section must be skipped.
+
+
 
 ## Foreword
 
@@ -120,7 +126,11 @@ sudo usermod -a dietpi -G audio
 ```
 
 
-5. Edit the file `85-DAC.rules` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your USB DAC.
+5. If your version of *CamillaDSP* is 3.1 or later, please skip this step.
+   
+   If your version of CamillaDSP is 3.0 or earlier:
+   
+   Edit the file `85-DAC.rules` and replace the values of the parameters `ID_VENDOR_ID` and `ID_MODEL_ID` with those of your USB DAC.
    You can obtain those values with the following command :
 
 ```
@@ -128,7 +138,11 @@ usb-devices
 ```
 (_Vendor_ corresponds to `ID_VENDOR_ID` and _ProdID_ corresponds to `ID_MODEL_ID`)  
 
-6. Copy the file `85-DAC.rules` to the `udev` rules folder:
+6. If your version of *CamillaDSP* is 3.1 or later, please skip this step.
+
+   If your version of CamillaDSP is 3.0 or earlier:
+
+   Copy the file `85-DAC.rules` to the `udev` rules folder:
 
 ```
 sudo cp 85-DAC.rules /etc/udev/rules.d
