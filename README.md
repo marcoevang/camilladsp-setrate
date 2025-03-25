@@ -14,7 +14,7 @@ This tool may also allow resampling to a fixed playback rate and upsampling by a
 
 2. **Automatic reloading of a valid configuration whenever the playback device becomes available.**    
 
-*CamillaDSP* as it must be, stops working when the playback device is no longer available. This happens, for example, when your DAC is switched off or you switch to another input. Unfortunately, *CamillaDSP*, up to version 3.0, remains blocked even when the playback device becomes available again. 
+*CamillaDSP* as it must be, stops working when the playback device is no longer available. This happens, for example, when your DAC is switched off or you switch to another input. Unfortunately, *CamillaDSP*, up to version 3.0.0, remains blocked even when the playback device becomes available again. 
 
 ***camilladsp-setrate*** reloads a valid configuration as soon as the playback device reappears, thus unlocking _CamillaDSP_.   
 
